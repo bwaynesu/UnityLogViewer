@@ -10,6 +10,8 @@ jobs:
       contents: write   # lets GITHUB_TOKEN create the Release
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # git-cliff needs full history + tags
       - uses: actions/setup-node@v5
         with:
           node-version: 20
@@ -19,12 +21,31 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+
+      # Build release notes from the Conventional Commit messages since the
+      # previous tag (config in cliff.toml). Binary install works on Windows;
+      # the official git-cliff-action is Docker-only and can't run here.
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+      - name: Generate release notes
+        id: notes
+        shell: bash
+        run: |
+          git-cliff --latest --strip header -o NOTES.md
+          {
+            echo 'body<<GITCLIFF_EOF'
+            cat NOTES.md
+            echo GITCLIFF_EOF
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Unity Log Viewer ${{ github.ref_name }}
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
           prerelease: false
 

@@ -1,0 +1,35 @@
+# git-cliff — generates release notes from Conventional Commit messages.
+# Used by .github/workflows/release.yml on every v* tag.
+
+[changelog]
+header = ""
+body = """
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | upper_first }}
+{% for commit in commits %}
+- {{ commit.message | upper_first }}
+{%- endfor %}
+{% endfor %}
+"""
+trim = true
+footer = ""
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+filter_commits = true
+tag_pattern = "v[0-9]*"
+commit_parsers = [
+  { message = "^feat", group = "Features" },
+  { message = "^fix", group = "Bug Fixes" },
+  { message = "^perf", group = "Performance" },
+  { message = "^ui", group = "UI" },
+  { message = "^docs", group = "Documentation" },
+  { message = "^refactor", group = "Refactoring" },
+  { message = "^ci", group = "CI / Build" },
+  { message = "^build", group = "CI / Build" },
+  { message = "^test", skip = true },
+  { message = "^chore", skip = true },
+  { message = "^release", skip = true },
+  { message = ".*", group = "Other" },
+]
