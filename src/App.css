@@ -1,0 +1,781 @@
+/* dark is the default palette; theme setting stamps data-theme on <html> */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #1e1e1e;
+  --bg2: #252526;
+  --bg3: #2d2d30;
+  --fg: #d4d4d4;
+  --fg-dim: #808080;
+  --accent: #0e639c;
+  --warn: #d7ba7d;
+  --err: #f48771;
+  --border: #3c3c3c;
+  --hover: #3e3e42;
+  --sel: #094771;
+  --notice-bg: #4d3800;
+}
+
+:root[data-theme="gray"] {
+  color-scheme: dark;
+  --bg: #3a3d41;
+  --bg2: #424549;
+  --bg3: #4c4f53;
+  --fg: #e6e6e6;
+  --fg-dim: #b0b0b0;
+  --accent: #4a9edb;
+  --warn: #e0c48a;
+  --err: #f79581;
+  --border: #5a5d61;
+  --hover: #55585c;
+  --sel: #2c5d86;
+  --notice-bg: #5c4a1e;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg2: #f3f3f3;
+  --bg3: #e7e7e7;
+  --fg: #1f1f1f;
+  --fg-dim: #6a6a6a;
+  --accent: #0e639c;
+  --warn: #8a6d00;
+  --err: #c4321a;
+  --border: #cfcfcf;
+  --hover: #e0e0e0;
+  --sel: #cde3f7;
+  --notice-bg: #fbeecb;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+button {
+  background: var(--bg3);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+button:hover {
+  background: var(--hover);
+}
+
+/* form controls don't inherit font-size by default — opt them in so they
+   scale with --ui-fs like everything else */
+input,
+select,
+textarea {
+  font-size: inherit;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ---- home page (start screen & empty "New Tab") ---- */
+.home {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  color: var(--fg-dim);
+  overflow-y: auto;
+}
+
+/* margin:auto centers when short AND scrolls from the very top when tall
+   (justify-content:center clips the top half beyond scroll range) */
+.home-inner {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+}
+
+.home h1 {
+  color: var(--fg);
+  font-weight: 400;
+}
+
+.author-link {
+  font-size: 0.5em;
+  color: var(--accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.author-link:hover {
+  text-decoration: underline;
+}
+
+.home-settings {
+  position: fixed;
+  right: 14px;
+  bottom: 12px;
+  z-index: 20;
+}
+
+.drop-hint {
+  cursor: pointer;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 18px 40px;
+}
+
+.drop-hint:hover {
+  background: var(--bg2);
+}
+
+.empty-cols {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  max-width: 90vw;
+}
+
+.empty-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  max-width: 40vw;
+}
+
+.empty-col h3 {
+  font-size: 0.92em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.empty-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  padding: 5px 10px;
+}
+
+.empty-item .hint {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-text {
+  color: var(--err);
+}
+
+/* ---- tab bar ---- */
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px 0;
+  background: var(--bg2);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  background: var(--bg);
+  cursor: pointer;
+  opacity: 0.6;
+  max-width: 220px;
+}
+
+.tab.on {
+  opacity: 1;
+  background: var(--bg3);
+}
+
+.tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-close {
+  color: var(--fg-dim);
+  padding: 0 2px;
+}
+
+.tab-close:hover {
+  color: var(--err);
+}
+
+/* ---- viewer layout ---- */
+.viewer {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--ui-fs, 13px);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+
+.toolbar .path {
+  color: var(--fg-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40vw;
+}
+
+.lvl-btn,
+.mini {
+  opacity: 0.45;
+}
+
+.lvl-btn.on,
+.mini.on {
+  opacity: 1;
+  background: var(--hover);
+}
+
+.mini {
+  padding: 3px 6px;
+  font-family: Consolas, monospace;
+}
+
+.search {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: inherit;
+  flex: 1; /* fills the toolbar's left side */
+  min-width: 120px;
+}
+
+.search:focus {
+  outline: 1px solid var(--accent);
+}
+
+.search.bad {
+  border-color: var(--err);
+}
+
+/* ---- list + sidebar row ---- */
+.body-row {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.list {
+  flex: 1;
+  min-width: 80px; /* an over-wide (stored) sidebar can never crush the list to 0 */
+  overflow-y: auto;
+  position: relative;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--list-fs, 12px);
+}
+
+.sidebar {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--bg2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* anchors .side-drag */
+}
+
+/* native crash banner — deliberately loud */
+.crash-notice {
+  flex-shrink: 0;
+  margin: 6px;
+  padding: 6px 8px;
+  text-align: left;
+  color: var(--err);
+  border-color: var(--err);
+  background: rgba(244, 135, 113, 0.12);
+}
+
+.crash-notice:hover {
+  background: rgba(244, 135, 113, 0.22);
+}
+
+.side-sec {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.side-sec.grow {
+  flex: 1; /* error summary fills the remaining sidebar height */
+  flex-shrink: 1;
+}
+
+.side-sec.sep {
+  border-top: 1px solid var(--border);
+}
+
+.side-head.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.side-head.clickable:hover {
+  color: var(--fg);
+}
+
+.side-drag {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+  font-size: var(--ui-fs, 12px);
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  font-weight: 600;
+}
+
+/* per-section horizontal scroll: headers/counts stay put, content extends */
+.sysinfo {
+  padding: 0 8px 6px;
+  overflow-x: auto;
+}
+
+.sysrow {
+  display: flex;
+  gap: 6px;
+  padding: 1px 0;
+  width: max-content;
+  min-width: 100%;
+}
+
+.sysrow dt {
+  color: var(--fg-dim);
+  width: 5.5em; /* em: keeps label column aligned at any font scale (px overlapped) */
+  flex-shrink: 0;
+}
+
+.sysrow dd {
+  white-space: nowrap;
+}
+
+.side-counts {
+  display: flex;
+  gap: 12px;
+  padding: 0 8px 6px;
+}
+
+.side-empty {
+  padding: 4px 8px;
+  color: var(--fg-dim);
+}
+
+.top-errors {
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.top-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  width: max-content;
+  min-width: 100%;
+}
+
+.top-error:hover {
+  background: var(--bg3);
+}
+
+.top-error .msg {
+  white-space: nowrap;
+}
+
+.top-error .badge {
+  flex-shrink: 0;
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--fg-dim);
+}
+
+/* full-screen, blocks interaction — a second drop must visibly "take" (user feedback) */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.6);
+  z-index: 100;
+}
+
+.overlay-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 32px;
+  font-size: 1.15em;
+}
+
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--row-h, 24px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.row:hover {
+  background: var(--bg3);
+}
+
+.row.selected {
+  background: var(--sel);
+}
+
+.row .msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row .placeholder {
+  color: var(--fg-dim);
+}
+
+.row .idx {
+  color: var(--fg-dim);
+  text-align: right;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.row .badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--fg-dim);
+}
+
+.occurrences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg-dim);
+  max-height: 72px;
+  overflow-y: auto;
+  flex-shrink: 0; /* fixed section: never squeezed away by message/frames */
+}
+
+.occurrences .hint {
+  font-size: 0.85em;
+}
+
+.icon.Log {
+  color: var(--fg-dim);
+}
+
+.icon.Warning {
+  color: var(--warn);
+}
+
+.icon.Error,
+.icon.Assert,
+.icon.Exception {
+  color: var(--err);
+}
+
+/* ---- detail panel ---- */
+.detail {
+  min-height: 120px;
+  position: relative;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.detail-msg {
+  padding: 8px;
+  font-family: Consolas, monospace;
+  font-size: var(--list-fs, 12px);
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  min-height: 3em; /* message stays readable at any panel height; scrolls inside */
+}
+
+.frames {
+  overflow-y: auto;
+  min-height: 3em;
+  padding: 0 8px 8px;
+  font-family: Consolas, monospace;
+  font-size: var(--list-fs, 12px);
+  color: var(--fg-dim);
+}
+
+.frame.linked {
+  color: #4fc1ff;
+  cursor: pointer;
+}
+
+.frame.linked:hover {
+  text-decoration: underline;
+}
+
+/* transient degradation notice; fonts follow --ui-fs via .viewer */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--notice-bg);
+  border-top: 1px solid var(--border);
+}
+
+.notice .msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting .wide {
+  flex: 1;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-family: Consolas, monospace;
+}
+
+
+.detail-drag {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 7px;
+  cursor: ns-resize;
+  z-index: 5;
+}
+
+/* ---- settings modal ---- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px 16px;
+  /* size as a share of the window (vw/vh), not fixed px; guards keep it usable
+     on very small/large windows. At 1280x800: ~666w x ~592h. */
+  width: 52vw;
+  height: 74vh;
+  min-width: 420px;
+  max-width: 92vw;
+  overflow-y: auto;
+}
+
+/* About section (AGPL "Appropriate Legal Notices") */
+.about {
+  color: var(--fg-dim);
+  font-size: 0.9em;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.about a {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.about a:hover {
+  text-decoration: underline;
+}
+
+/* association status note: a wrapping paragraph, not a flex row */
+.assoc-note {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+  line-height: 1.4;
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal h3 {
+  font-size: 0.92em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin: 14px 0 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* first section needs no divider (modal header sits above it) */
+.modal h3:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.setting.sub {
+  padding-left: 22px;
+}
+
+/* native checkboxes don't scale with font-size; size them in em so the box
+   grows with the label text */
+.setting input[type="checkbox"] {
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.setting .hint {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+}
+
+.setting select {
+  background: var(--bg3);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* folder rows read as fields: bordered chip + adjacent remove button */
+.setting .folder {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+.setting input[type="number"] {
+  width: 56px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.setting input[type="color"] {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: none;
+}
+
+/* ---- status bar ---- */
+.statusbar {
+  padding: 3px 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--ui-fs, 12px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,31 @@
+# Logs
+logs
+*.log
+# This repo ships no sample logs. Ignore any fixtures dropped in for local
+# testing so they can never be committed (they live in the separate Local repo).
+fixtures/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+__pycache__/
+
+# insta pending snapshots (review with `cargo insta`, never commit)
+*.snap.new

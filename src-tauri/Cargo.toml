@@ -1,0 +1,52 @@
+[workspace]
+members = ["core"]
+
+# `npm run tauri dev` builds Rust in debug: the parser was ~12x slower than release
+# (412MB: 33s vs 2.8s). Optimize just the parsing hot path even in dev; the app
+# crate itself stays debug for fast rebuilds.
+[profile.dev.package.ulv-core]
+opt-level = 3
+
+[profile.dev.package.regex]
+opt-level = 3
+
+[profile.dev.package.regex-automata]
+opt-level = 3
+
+[profile.dev.package.aho-corasick]
+opt-level = 3
+
+[profile.dev.package.memchr]
+opt-level = 3
+
+[package]
+name = "ulv"
+version = "1.0.0"
+description = "Unity Log Viewer"
+authors = ["bwaynesu"]
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "ulv_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+ulv-core = { path = "core" }
+regex = "1"
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri-plugin-dialog = "2.7.1"
+tauri-plugin-single-instance = "2"
+
