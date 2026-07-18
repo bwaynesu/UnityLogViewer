@@ -9,8 +9,6 @@ Player.log has no timestamps and no level prefixes, so in a text editor it reads
 > Status: v1.0.0, feature-complete for its scope.  
 > Runs on Windows 10/11.
 
-<!-- demo GIF goes here before release, e.g. ![demo](docs/demo.gif) -->
-
 ## Why
 
 Real player logs run to hundreds of megabytes and hundreds of thousands of lines, which is enough to make a general text editor sluggish. The format also carries structure that an editor ignores: call-site stack frames, exception blocks, and the startup banner. Recovering that structure is most of what this tool does. And when you find an error, the source line is one click away.
