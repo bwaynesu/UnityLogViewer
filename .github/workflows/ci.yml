@@ -8,7 +8,7 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -21,7 +21,7 @@ jobs:
   core:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -31,7 +31,7 @@ jobs:
   app-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: 20
