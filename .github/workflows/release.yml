@@ -25,7 +25,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: Unity Log Viewer ${{ github.ref_name }}
-          releaseDraft: true   # publish manually after checking the build
+          releaseDraft: false
           prerelease: false
 
       # The bundler only uploads installers; also publish the raw self-contained

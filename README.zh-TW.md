@@ -48,7 +48,9 @@ IDE 深層連結
 
 ## 安裝
 
-可以到 [Releases](../../releases) 頁面下載安裝檔，或自行從原始碼建置。建置需要 [Rust](https://www.rust-lang.org/tools/install)(stable，Windows 上需要 MSVC 工具鏈)、[Node.js](https://nodejs.org/) 20+，以及 [Tauri 環境需求](https://tauri.app/start/prerequisites/)。WebView2 隨 Windows 10/11 一起附帶。
+可以到 [Releases](../../releases) 頁面下載安裝檔或免安裝(portable)版 exe，或自行從原始碼建置。建置需要 [Rust](https://www.rust-lang.org/tools/install)(stable，Windows 上需要 MSVC 工具鏈)、[Node.js](https://nodejs.org/) 20+，以及 [Tauri 環境需求](https://tauri.app/start/prerequisites/)。WebView2 隨 Windows 10/11 一起附帶。
+
+**第一次執行：** 這些發行版沒有經過程式碼簽章(簽章需要付費憑證)，所以第一次執行安裝檔或程式時，Windows 可能會跳出「Windows 已保護您的電腦」的 SmartScreen 視窗。點「其他資訊」再點「仍要執行」即可繼續。這對未簽章的開源程式是正常現象。
 
 ```bash
 npm install

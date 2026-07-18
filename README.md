@@ -48,7 +48,9 @@ The app is offline. It reads local files and makes no network requests: no telem
 
 ## Install
 
-Download an installer from the [Releases](../../releases) page, or build from source. Building needs [Rust](https://www.rust-lang.org/tools/install) (stable, MSVC toolchain on Windows), [Node.js](https://nodejs.org/) 20+, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). WebView2 ships with Windows 10/11.
+Download an installer or the portable exe from the [Releases](../../releases) page, or build from source. Building needs [Rust](https://www.rust-lang.org/tools/install) (stable, MSVC toolchain on Windows), [Node.js](https://nodejs.org/) 20+, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). WebView2 ships with Windows 10/11.
+
+**First run:** the release builds are not code-signed (code signing needs a paid certificate), so the first time you run the installer or the app, Windows may show a **"Windows protected your PC"** SmartScreen dialog. Click **More info**, then **Run anyway** to continue. This is expected for an unsigned open-source app.
 
 ```bash
 npm install
