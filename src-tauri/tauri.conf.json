@@ -23,8 +23,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/bwaynesu/UnityLogViewer/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE5MkNFOEIyREE5MjAzMTQKUldRVUE1TGFzdWdzcVZIeWNPd01tQkhsM3UvaW8xNU9Xd0ZoQnl5ZzM4ajlzWENyY2t1b0pOUDEK"
+    }
+  },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": "all",
     "icon": [
       "icons/32x32.png",

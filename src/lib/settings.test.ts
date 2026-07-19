@@ -30,10 +30,13 @@ test("scanFolders keeps strings only; scanDepth clamps 0-5", () => {
   expect(mergeSettings({ scanDepth: -1 }).scanDepth).toBe(0);
 });
 
-test("checkForUpdates defaults off and accepts a stored boolean", () => {
-  expect(mergeSettings({}).checkForUpdates).toBe(false);
-  expect(mergeSettings({ checkForUpdates: true }).checkForUpdates).toBe(true);
-  expect(mergeSettings({ checkForUpdates: "yes" }).checkForUpdates).toBe(false);
+test("updates defaults off, accepts the enum, and migrates the old boolean", () => {
+  expect(mergeSettings({}).updates).toBe("off");
+  expect(mergeSettings({ updates: "auto" }).updates).toBe("auto");
+  expect(mergeSettings({ updates: "bogus" }).updates).toBe("off");
+  // legacy v1.1.0 checkForUpdates boolean
+  expect(mergeSettings({ checkForUpdates: true }).updates).toBe("notify");
+  expect(mergeSettings({ checkForUpdates: false }).updates).toBe("off");
 });
 
 test("mergeSettings keeps valid stored values and clamps out-of-range", () => {

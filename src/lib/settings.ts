@@ -18,8 +18,12 @@ export interface Settings {
   scanFolders: string[];
   /** Subfolder levels to descend when scanning (0 = top level only). */
   scanDepth: number;
-  /** Query GitHub for a newer release once at startup. Off = no network at all. */
-  checkForUpdates: boolean;
+  /**
+   * Update behaviour, checked once at startup. "off" = no network at all.
+   * "notify" = check GitHub and show a link to download yourself.
+   * "auto" = download + install via the Tauri updater (installer builds).
+   */
+  updates: "off" | "notify" | "auto";
 }
 
 export const DEFAULTS: Settings = {
@@ -38,7 +42,7 @@ export const DEFAULTS: Settings = {
   ideTemplate: "",
   scanFolders: [],
   scanDepth: 2,
-  checkForUpdates: false,
+  updates: "off",
 };
 
 export const clampScale = (n: number) => Math.min(2, Math.max(0.7, Math.round(n * 10) / 10));
@@ -69,7 +73,8 @@ export function mergeSettings(raw: unknown): Settings {
     s.scanFolders = r.scanFolders.filter((p): p is string => typeof p === "string").slice(0, 20);
   }
   if (typeof r.scanDepth === "number") s.scanDepth = Math.min(5, Math.max(0, Math.round(r.scanDepth)));
-  if (typeof r.checkForUpdates === "boolean") s.checkForUpdates = r.checkForUpdates;
+  if (r.updates === "off" || r.updates === "notify" || r.updates === "auto") s.updates = r.updates;
+  else if (typeof r.checkForUpdates === "boolean") s.updates = r.checkForUpdates ? "notify" : "off"; // migrate v1.1.0
   return s;
 }
 

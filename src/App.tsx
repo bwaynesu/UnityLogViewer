@@ -5,6 +5,8 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { check as checkUpdater } from "@tauri-apps/plugin-updater";
 import {
   closeFile,
   getEntries,
@@ -86,7 +88,7 @@ export default function App() {
     text: string;
     copyPath?: string;
     retryFrame?: StackFrame; // "Set project root…" retries this frame on success
-    link?: { label: string; url: string }; // e.g. "Download" for an update notice
+    action?: { label: string; run: () => void }; // e.g. Download (open page) / Restart
   } | null>(null);
   const cacheRef = useRef<Map<number, Row[]>>(new Map());
   const [, bump] = useState(0);
@@ -99,17 +101,34 @@ export default function App() {
   const stats = tabs.find((t) => t.id === active)?.stats ?? null;
 
   useEffect(() => saveSettings(settings), [settings]);
-  // Opt-in update check: one GitHub call at startup (reads the setting as loaded
-  // at mount — toggling it on takes effect next launch). Silent on failure.
+  // Opt-in update check at startup (setting read as loaded at mount; changing it
+  // takes effect next launch). "notify" = link to the download page; "auto" =
+  // download + install via the Tauri updater, then offer to restart. Both silent
+  // on failure — auto falls back to the notify link if the updater can't run.
   useEffect(() => {
-    if (!settings.checkForUpdates) return;
+    if (settings.updates === "off") return;
     let cancelled = false;
-    getVersion()
-      .then(checkForUpdate)
-      .then((u) => {
-        if (!cancelled && u)
-          setNotice({ text: `Update available: v${u.version}`, link: { label: "Download", url: u.url } });
-      });
+    const notify = async () => {
+      const u = await checkForUpdate(await getVersion());
+      if (!cancelled && u)
+        setNotice({ text: `Update available: v${u.version}`, action: { label: "Download", run: () => openUrl(u.url) } });
+    };
+    (async () => {
+      if (settings.updates !== "auto") return notify();
+      try {
+        const update = await checkUpdater();
+        if (!update) return;
+        if (cancelled) return;
+        setNotice({ text: `Downloading update v${update.version}…` });
+        await update.downloadAndInstall();
+        // ponytail: on a portable exe this runs the installer (installs the app);
+        // gate on install location if that turns out to matter.
+        if (!cancelled)
+          setNotice({ text: `Updated to v${update.version}`, action: { label: "Restart now", run: () => relaunch() } });
+      } catch {
+        await notify(); // updater unavailable/blocked — fall back to the manual link
+      }
+    })();
     return () => {
       cancelled = true;
     };
@@ -491,9 +510,9 @@ export default function App() {
     }
   };
 
-  // auto-dismiss passive notices; actionable ones (retry / update link) stay until handled
+  // auto-dismiss passive notices; actionable ones (retry / update action) stay until handled
   useEffect(() => {
-    if (!notice || notice.retryFrame || notice.link) return;
+    if (!notice || notice.retryFrame || notice.action) return;
     const t = setTimeout(() => setNotice(null), 6000);
     return () => clearTimeout(t);
   }, [notice]);
@@ -820,9 +839,9 @@ export default function App() {
               Copy path
             </button>
           )}
-          {notice.link && (
-            <button className="mini" onClick={() => openUrl(notice.link!.url)}>
-              {notice.link.label}
+          {notice.action && (
+            <button className="mini" onClick={() => notice.action!.run()}>
+              {notice.action.label}
             </button>
           )}
           <button className="mini" onClick={() => setNotice(null)}>
