@@ -49,6 +49,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 
 **Comfort**
 - Tabs, light/gray/dark themes, adjustable font size (Ctrl+scroll), and row tinting. Preferences are stored locally.
+- UI in 7 languages (English, 繁體中文, 简体中文, 日本語, 한국어, Русский, Español), following the system language by default. Adding a locale is a single-file PR — see `src/locales/en.ts`.
 
 ## Performance
 
