@@ -591,6 +591,31 @@ export default function App() {
     "--row-h": `${rowH}px`,
   } as React.CSSProperties;
 
+  // Shared across the home and viewer layouts so update/error notices show in both.
+  const noticeBar = notice && (
+    <div className="notice">
+      <span className="msg">{notice.text}</span>
+      {notice.retryFrame && (
+        <button className="mini" onClick={() => pickRootAndRetry(notice.retryFrame!)}>
+          Set project root…
+        </button>
+      )}
+      {notice.copyPath && (
+        <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
+          Copy path
+        </button>
+      )}
+      {notice.action && (
+        <button className="mini" onClick={() => notice.action!.run()}>
+          {notice.action.label}
+        </button>
+      )}
+      <button className="mini" onClick={() => setNotice(null)}>
+        ✕
+      </button>
+    </div>
+  );
+
   if (!stats) {
     return (
       <main className="viewer" style={fontVars}>
@@ -657,6 +682,7 @@ export default function App() {
         <button className="home-settings" title="Settings" onClick={() => setShowSettings(true)}>
           ⚙
         </button>
+        {noticeBar}
         {showSettings && (
           <SettingsModal
             settings={settings}
@@ -825,29 +851,7 @@ export default function App() {
         </div>
       )}
 
-      {notice && (
-        <div className="notice">
-          <span className="msg">{notice.text}</span>
-          {notice.retryFrame && (
-            <button className="mini" onClick={() => pickRootAndRetry(notice.retryFrame!)}>
-              Set project root…
-            </button>
-          )}
-          {notice.copyPath && (
-            <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
-              Copy path
-            </button>
-          )}
-          {notice.action && (
-            <button className="mini" onClick={() => notice.action!.run()}>
-              {notice.action.label}
-            </button>
-          )}
-          <button className="mini" onClick={() => setNotice(null)}>
-            ✕
-          </button>
-        </div>
-      )}
+      {noticeBar}
 
       <div className="statusbar">
         {total.toLocaleString()} {collapse ? "groups" : "entries"} /{" "}
