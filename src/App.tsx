@@ -20,8 +20,10 @@ import {
   resolvePath,
   scanLocalLogs,
   scanWatched,
+  setTail,
   startupPaths,
   topErrors,
+  type TailUpdate,
   validateRoot,
   type FilterParams,
   type LocalLog,
@@ -82,6 +84,9 @@ export default function App() {
   const [top, setTop] = useState<Row[]>([]);
   // session-only bookmarks, keyed by file id (see lib/bookmarks.ts)
   const [bookmarks, setBookmarks] = useState<Record<number, Bookmark[]>>({});
+  // live-tail toggle per file id; the poller thread lives on the Rust side
+  const [tailing, setTailing] = useState<Record<number, boolean>>({});
+  const [tailTick, setTailTick] = useState(0); // re-fetch trigger for sidebar data
   const [recent, setRecent] = useState<string[]>(loadRecent);
   const [localLogs, setLocalLogs] = useState<LocalLog[]>([]);
   const [watched, setWatched] = useState<LocalLog[]>([]);
@@ -226,8 +231,9 @@ export default function App() {
   };
 
   const closeTab = (id: number) => {
-    if (id > 0) closeFile(id); // empty tabs have no Rust-side file
+    if (id > 0) closeFile(id); // empty tabs have no Rust-side file (also stops its tail poller)
     setBookmarks(({ [id]: _, ...rest }) => rest);
+    setTailing(({ [id]: _t, ...rest }) => rest);
     setTabs((ts) => {
       const idx = ts.findIndex((t) => t.id === id);
       const next = ts.filter((t) => t.id !== id);
@@ -270,6 +276,13 @@ export default function App() {
     };
   }, [load]);
 
+  const toggleTail = () => {
+    if (active === null || active < 0) return;
+    const on = !tailing[active];
+    setTailing((m) => ({ ...m, [active]: on }));
+    setTail(active, on).catch(() => setTailing((m) => ({ ...m, [active]: false })));
+  };
+
   // home page (no tabs, or an empty tab): scan LocalLow + user's watched folders
   const showingHome = stats === null;
   useEffect(() => {
@@ -285,7 +298,7 @@ export default function App() {
   // per-file summary for the sidebar (positive ids only; empty tabs are frontend-local)
   useEffect(() => {
     if (active !== null && active > 0) topErrors(active, 10).then(setTop);
-  }, [active]);
+  }, [active, tailTick]);
 
   // view change (filter / collapse / tab) → reset cache, refetch, keep selection anchored
   useEffect(() => {
@@ -324,8 +337,10 @@ export default function App() {
     return () => {
       stale = true;
     };
+    // deps: `active`, not `stats` — tail updates replace the stats object every
+    // tick, and this effect's positionOf anchoring would yank the scroll then.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter, collapse, stats]);
+  }, [filter, collapse, active, stats !== null]);
 
   const rowH = Math.round(24 * settings.fontScale);
   const virtualizer = useVirtualizer({
@@ -363,6 +378,31 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vStart, vEnd, stats, filter, collapse]);
+
+  // live tail: the Rust poller emits tail-update after splicing new entries in.
+  // Ids are stable on append (only the last entry may be re-parsed in place),
+  // so selection and bookmarks stay valid — just drop the page cache, refresh
+  // totals, and keep following the bottom if the user was already there.
+  useEffect(() => {
+    const un = listen<TailUpdate>("tail-update", (ev) => {
+      const { fileId, stats: s, reset } = ev.payload;
+      setTabs((ts) => ts.map((tb) => (tb.id === fileId ? { ...tb, stats: s } : tb)));
+      if (reset) setBookmarks((bs) => ({ ...bs, [fileId]: [] })); // ids point at new content
+      if (fileId !== active) return;
+      if (reset) setSelected(null);
+      const follow = reset || vEnd >= total - 2; // near bottom → keep following
+      cacheRef.current = new Map();
+      fetchPage(filter, 0, 1).then((p) => {
+        setTotal(p.total);
+        bump((n) => n + 1);
+        if (follow && p.total > 0) virtualizer.scrollToIndex(p.total - 1, { align: "end" });
+      });
+      setTailTick((n) => n + 1);
+    });
+    return () => {
+      un.then((f) => f());
+    };
+  }, [active, filter, fetchPage, virtualizer, vEnd, total]);
 
   const rowAt = (i: number): Row | undefined =>
     cacheRef.current.get(Math.floor(i / CHUNK))?.[i % CHUNK];
@@ -760,6 +800,13 @@ export default function App() {
           onClick={() => setCollapse((v) => !v)}
         >
           {t("collapse")}
+        </button>
+        <button
+          className={`mini ${active !== null && tailing[active] ? "on" : ""}`}
+          title={t("liveTailTitle")}
+          onClick={toggleTail}
+        >
+          ⏵ {t("liveTail")}
         </button>
         {toggleBtn("log", "ⓘ", stats.log)}
         {toggleBtn("warning", "⚠", stats.warning)}

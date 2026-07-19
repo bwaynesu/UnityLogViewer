@@ -46,6 +46,8 @@ export const ru: Messages = {
   driver: "Драйвер",
   errorSummary: "Сводка ошибок",
   noErrors: "Ошибок нет 🎉",
+  liveTail: "Live",
+  liveTailTitle: "Следить за ростом файла (live tail)",
   bookmarks: "Закладки",
   bookmarkToggle: "Закладка (B)",
   copyRef: "Ссылка",

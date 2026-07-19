@@ -46,6 +46,8 @@ export const zhCN: Messages = {
   driver: "驱动程序",
   errorSummary: "错误摘要",
   noErrors: "没有错误 🎉",
+  liveTail: "实时",
+  liveTailTitle: "实时跟踪此文件的新增内容(live tail)",
   bookmarks: "书签",
   bookmarkToggle: "书签(B)",
   copyRef: "复制引用",

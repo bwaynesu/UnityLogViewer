@@ -26,6 +26,11 @@ pub struct LogEntry {
     pub id: u32,
     /// 1-based line number of the entry's first line in the file.
     pub line_no: u32,
+    /// Byte offset of the entry's first line in the parsed text. An entry
+    /// always begins with a fresh parser state, so re-parsing from this offset
+    /// reproduces exactly the entries a full parse yields from here on — the
+    /// property live tail relies on to parse only the file's new tail.
+    pub offset: usize,
     pub level: Level,
     pub message: String,
     pub frames: Vec<StackFrame>,
@@ -79,6 +84,7 @@ fn frame_location(raw: &str) -> (Option<String>, Option<u32>) {
 
 struct Builder {
     line_no: u32,
+    offset: usize,
     level: Level,
     message: String,
     frames: Vec<StackFrame>,
@@ -104,6 +110,7 @@ impl Builder {
         LogEntry {
             id,
             line_no: self.line_no,
+            offset: self.offset,
             level,
             message: self.message,
             frames: self.frames,
@@ -216,6 +223,7 @@ pub fn parse_with_progress(text: &str, mut progress: impl FnMut(usize)) -> Vec<L
         flush(current.take(), &mut entries);
         current = Some(Builder {
             line_no,
+            offset: bytes_done - raw_line.len() - 1,
             level: if EXCEPTION_HEADER.is_match(line) {
                 Level::Exception
             } else {
@@ -255,6 +263,31 @@ mod tests {
         assert_eq!(e.len(), 2);
         assert_eq!(e[0].frames.len(), 3);
         assert_eq!(e[1].message, "next entry");
+    }
+
+    #[test]
+    fn reparse_from_last_entry_offset_equals_full_parse() {
+        // The live-tail contract: re-parsing from the last entry's byte offset
+        // must yield exactly what a full parse yields from that point, even
+        // when the appended bytes extend that entry with more frames.
+        let head = "warmup line\nCamera Register Camera\nUnityEngine.Debug:Log(Object)\n";
+        let tail = "CameraManager:Register(CameraController, Boolean)\nnew entry after\n";
+        let full = parse(&format!("{head}{tail}"));
+
+        let partial = parse(head);
+        let last = partial.last().unwrap();
+        assert_eq!(&head[last.offset..last.offset + 6], "Camera");
+        let resumed = parse(&format!("{}{tail}", &head[last.offset..]));
+
+        // splice: entries before the last + resumed (rebased) == full parse
+        assert_eq!(full.len(), partial.len() - 1 + resumed.len());
+        for (f, r) in full.iter().skip(partial.len() - 1).zip(&resumed) {
+            assert_eq!(f.message, r.message);
+            assert_eq!(f.frames.len(), r.frames.len());
+            assert_eq!(f.hash, r.hash);
+            assert_eq!(f.offset, r.offset + last.offset);
+            assert_eq!(f.line_no, r.line_no + last.line_no - 1);
+        }
     }
 
     #[test]

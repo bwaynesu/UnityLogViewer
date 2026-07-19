@@ -46,6 +46,8 @@ export const ko: Messages = {
   driver: "드라이버",
   errorSummary: "오류 요약",
   noErrors: "오류 없음 🎉",
+  liveTail: "라이브",
+  liveTailTitle: "파일에 추가되는 내용을 실시간 표시 (live tail)",
   bookmarks: "북마크",
   bookmarkToggle: "북마크 (B)",
   copyRef: "참조 복사",

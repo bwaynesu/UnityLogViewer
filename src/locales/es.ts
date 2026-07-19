@@ -46,6 +46,8 @@ export const es: Messages = {
   driver: "Controlador",
   errorSummary: "Resumen de errores",
   noErrors: "Sin errores 🎉",
+  liveTail: "En vivo",
+  liveTailTitle: "Seguir el archivo mientras crece (live tail)",
   bookmarks: "Marcadores",
   bookmarkToggle: "Marcador (B)",
   copyRef: "Copiar ref.",

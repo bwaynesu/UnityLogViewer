@@ -121,6 +121,17 @@ export const setLogAssociation = (enable: boolean) =>
 /** True for the portable single-exe build (auto-update install isn't applicable). */
 export const isPortable = () => invoke<boolean>("is_portable");
 
+/** Start/stop following a file as it grows (live tail). */
+export const setTail = (fileId: number, on: boolean) => invoke<void>("set_tail", { fileId, on });
+
+/** Payload of the `tail-update` event emitted by the live-tail poller. */
+export interface TailUpdate {
+  fileId: number;
+  /** File was truncated/rewritten: entry ids refer to new content. */
+  reset: boolean;
+  stats: Stats;
+}
+
 /** Top repeated errors over the whole file, for the summary panel. */
 export const topErrors = (fileId: number, limit: number) =>
   invoke<Row[]>("top_errors", { fileId, limit });

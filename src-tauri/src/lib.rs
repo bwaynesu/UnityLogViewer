@@ -7,9 +7,10 @@ use query::{
 };
 use serde::Serialize;
 use std::collections::HashMap;
-use std::sync::Mutex;
-use tauri::{AppHandle, Emitter, State};
-use ulv_core::{parse_banner, parse_with_progress, Banner, Level, LogEntry};
+use std::sync::atomic::{AtomicBool, Ordering::Relaxed};
+use std::sync::{Arc, Mutex};
+use tauri::{AppHandle, Emitter, Manager, State};
+use ulv_core::{parse, parse_banner, parse_with_progress, Banner, Level, LogEntry};
 
 struct Loaded {
     path: String,
@@ -19,6 +20,13 @@ struct Loaded {
     groups: Option<(String, Vec<(u32, u32)>)>,
     /// Local Unity project root (inferred at open or set by the user).
     project_root: Option<String>,
+    /// Bytes of the file consumed so far (live tail reads from here on).
+    read_len: usize,
+    /// False when the file had invalid UTF-8: lossy conversion shifts byte
+    /// offsets, so live tail falls back to full reparses for such files.
+    utf8_clean: bool,
+    /// Stop flag of the live-tail poller thread, when one is running.
+    tail: Option<Arc<AtomicBool>>,
 }
 
 /// Multiple open files keyed by id (tabs).
@@ -49,7 +57,7 @@ fn ensure_groups<'a>(
     &cache.as_ref().unwrap().1
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct Stats {
     path: String,
@@ -116,9 +124,10 @@ struct Opened {
 async fn open_file(path: String, app: AppHandle, state: State<'_, AppState>) -> Result<Opened, String> {
     let read_path = path.clone();
     // parse off the UI thread; invalid UTF-8 replaced, never fatal
-    let (entries, banner) = tauri::async_runtime::spawn_blocking(move || {
+    let (entries, banner, read_len, utf8_clean) = tauri::async_runtime::spawn_blocking(move || {
         let bytes = std::fs::read(&read_path).map_err(|e| format!("{read_path}: {e}"))?;
         let text = String::from_utf8_lossy(&bytes);
+        let utf8_clean = matches!(text, std::borrow::Cow::Borrowed(_));
         let total = text.len().max(1);
         let mut last_pct = 0usize;
         let entries = parse_with_progress(&text, |done| {
@@ -128,7 +137,7 @@ async fn open_file(path: String, app: AppHandle, state: State<'_, AppState>) -> 
                 let _ = app.emit("parse-progress", pct);
             }
         });
-        Ok::<_, String>((entries, parse_banner(&text)))
+        Ok::<_, String>((entries, parse_banner(&text), bytes.len(), utf8_clean))
     })
     .await
     .map_err(|e| e.to_string())??;
@@ -139,7 +148,16 @@ async fn open_file(path: String, app: AppHandle, state: State<'_, AppState>) -> 
             .flat_map(|e| e.frames.iter())
             .filter_map(|f| f.file.as_deref()),
     );
-    let loaded = Loaded { path, banner, entries, groups: None, project_root };
+    let loaded = Loaded {
+        path,
+        banner,
+        entries,
+        groups: None,
+        project_root,
+        read_len,
+        utf8_clean,
+        tail: None,
+    };
     let stats = Stats::of(&loaded);
     let mut files = state.0.lock().unwrap();
     files.next_id += 1;
@@ -150,7 +168,133 @@ async fn open_file(path: String, app: AppHandle, state: State<'_, AppState>) -> 
 
 #[tauri::command]
 fn close_file(file_id: u32, state: State<'_, AppState>) {
-    state.0.lock().unwrap().map.remove(&file_id);
+    if let Some(l) = state.0.lock().unwrap().map.remove(&file_id) {
+        if let Some(stop) = l.tail {
+            stop.store(true, Relaxed);
+        }
+    }
+}
+
+/// Splice a re-parsed tail into `entries`. The chunk was parsed from the byte
+/// offset of the current last entry, so the chunk's first entry *replaces* it
+/// (the entry may have grown — late frames can even change its level) and the
+/// rest append. Ids, line numbers and offsets are rebased; ids of all earlier
+/// entries never change, so selection and bookmarks stay valid.
+fn apply_tail(entries: &mut Vec<LogEntry>, chunk: Vec<LogEntry>, base_offset: usize) {
+    let (id_base, line_base) = match entries.last() {
+        Some(last) => (last.id, last.line_no - 1),
+        None => (0, 0),
+    };
+    entries.pop();
+    for (i, mut e) in chunk.into_iter().enumerate() {
+        e.id = id_base + i as u32;
+        e.line_no += line_base;
+        e.offset += base_offset;
+        entries.push(e);
+    }
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct TailUpdate {
+    file_id: u32,
+    /// True when the file shrank (game restarted, log rewritten): entry ids
+    /// refer to new content — the frontend drops selection and bookmarks.
+    reset: bool,
+    stats: Stats,
+}
+
+/// Start/stop following a file as it grows (live tail). Polling, not fs events:
+/// one metadata call every 500ms is beneath measurement and needs no crate.
+#[tauri::command]
+fn set_tail(file_id: u32, on: bool, app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
+    let mut files = state.0.lock().unwrap();
+    let loaded = files.map.get_mut(&file_id).ok_or("unknown file id")?;
+    if !on {
+        if let Some(stop) = loaded.tail.take() {
+            stop.store(true, Relaxed);
+        }
+        return Ok(());
+    }
+    if loaded.tail.is_some() {
+        return Ok(());
+    }
+    let stop = Arc::new(AtomicBool::new(false));
+    loaded.tail = Some(stop.clone());
+    let path = loaded.path.clone();
+    drop(files);
+    std::thread::spawn(move || tail_loop(app, file_id, path, stop));
+    Ok(())
+}
+
+fn tail_loop(app: AppHandle, file_id: u32, path: String, stop: Arc<AtomicBool>) {
+    while !stop.load(Relaxed) {
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        if stop.load(Relaxed) {
+            return;
+        }
+        let Ok(meta) = std::fs::metadata(&path) else { continue };
+        let file_len = meta.len() as usize;
+        // Snapshot without holding the lock across file IO.
+        let Some((read_len, resume, utf8_clean)) = ({
+            let state = app.state::<AppState>();
+            let files = state.0.lock().unwrap();
+            files.map.get(&file_id).map(|l| {
+                (l.read_len, l.entries.last().map(|e| e.offset).unwrap_or(0), l.utf8_clean)
+            })
+        }) else {
+            return; // file closed
+        };
+        if file_len == read_len {
+            continue;
+        }
+
+        if file_len < read_len || !utf8_clean {
+            // Truncated/recreated (game restart) or offsets untrustworthy:
+            // full reparse, then tell the frontend its ids are void.
+            let Ok(bytes) = std::fs::read(&path) else { continue };
+            let text = String::from_utf8_lossy(&bytes);
+            let utf8_clean = matches!(text, std::borrow::Cow::Borrowed(_));
+            let entries = parse(&text);
+            let banner = parse_banner(&text);
+            emit_tail(&app, file_id, true, |l| {
+                l.entries = entries;
+                l.banner = banner;
+                l.read_len = bytes.len();
+                l.utf8_clean = utf8_clean;
+            });
+        } else {
+            // Grown: parse only from the last entry's start (see apply_tail).
+            use std::io::{Read, Seek, SeekFrom};
+            let Ok(mut f) = std::fs::File::open(&path) else { continue };
+            let mut bytes = Vec::new();
+            if f.seek(SeekFrom::Start(resume as u64)).is_err() || f.read_to_end(&mut bytes).is_err() {
+                continue;
+            }
+            let text = String::from_utf8_lossy(&bytes);
+            let clean = matches!(text, std::borrow::Cow::Borrowed(_));
+            let chunk = parse(&text);
+            let consumed = resume + bytes.len();
+            emit_tail(&app, file_id, false, |l| {
+                apply_tail(&mut l.entries, chunk, resume);
+                l.read_len = consumed;
+                l.utf8_clean &= clean;
+            });
+        }
+    }
+}
+
+/// Apply a tail mutation under the lock, invalidate caches, emit the event.
+fn emit_tail(app: &AppHandle, file_id: u32, reset: bool, mutate: impl FnOnce(&mut Loaded)) {
+    let stats = {
+        let state = app.state::<AppState>();
+        let mut files = state.0.lock().unwrap();
+        let Some(l) = files.map.get_mut(&file_id) else { return };
+        mutate(l);
+        l.groups = None;
+        Stats::of(l)
+    };
+    let _ = app.emit("tail-update", TailUpdate { file_id, reset, stats });
 }
 
 /// Detected Player.log files under LocalLow.
@@ -759,6 +903,7 @@ pub fn run() {
             startup_paths,
             log_association,
             set_log_association,
+            set_tail,
             is_portable,
             validate_root,
             resolve_path,
@@ -766,6 +911,47 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tail_tests {
+    use super::apply_tail;
+    use ulv_core::parse;
+
+    #[test]
+    fn prefix_plus_tail_equals_full_parse() {
+        // The full live-tail splice: parse a prefix, then feed the bytes from
+        // the last entry's offset onward (old tail + appended data) through
+        // apply_tail. Result must equal a one-shot parse — including the level
+        // upgrade of the last entry once its LogError caller frame arrives.
+        let head = "boot line\nEnemy died\nsomething failed\n";
+        let appended = "UnityEngine.Debug:LogError(Object)\nlast line\n";
+        let full_text = format!("{head}{appended}");
+
+        let mut entries = parse(head);
+        let resume = entries.last().unwrap().offset;
+        let chunk = parse(&format!("{}{appended}", &head[resume..]));
+        apply_tail(&mut entries, chunk, resume);
+
+        let full = parse(&full_text);
+        assert_eq!(entries.len(), full.len());
+        for (a, b) in entries.iter().zip(&full) {
+            assert_eq!(a.id, b.id);
+            assert_eq!(a.line_no, b.line_no);
+            assert_eq!(a.offset, b.offset);
+            assert_eq!(a.level, b.level);
+            assert_eq!(a.message, b.message);
+            assert_eq!(a.hash, b.hash);
+        }
+    }
+
+    #[test]
+    fn apply_tail_on_empty_entries() {
+        let mut entries = Vec::new();
+        apply_tail(&mut entries, parse("first\nsecond\n"), 0);
+        assert_eq!(entries.len(), 2);
+        assert_eq!(entries[1].id, 1);
+    }
 }
 
 #[cfg(all(test, target_os = "windows"))]

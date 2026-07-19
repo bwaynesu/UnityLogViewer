@@ -46,6 +46,8 @@ export const ja: Messages = {
   driver: "ドライバー",
   errorSummary: "エラー概要",
   noErrors: "エラーなし 🎉",
+  liveTail: "ライブ",
+  liveTailTitle: "ファイルの追記をライブ表示(live tail)",
   bookmarks: "ブックマーク",
   bookmarkToggle: "ブックマーク(B)",
   copyRef: "参照をコピー",

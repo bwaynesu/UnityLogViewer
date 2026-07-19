@@ -34,6 +34,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 - Infers the level (Log, Warning, Error, Assert, Exception).
 - Collapses duplicate messages with an ×N count. Numbers in a message are masked, so spam that differs only in its numbers folds into one group.
 - Detail panel with the full message, a formatted stack trace, and a copy button for the raw entry.
+- Live tail: toggle **⏵ Live** to follow a file the game is still writing. New entries parse incrementally, the list stays pinned to the bottom until you scroll up, and a rewritten log (game restart) reloads automatically.
 
 **Finding**
 - Search the message and stack frames together: space-separated terms are AND-matched, `-term` excludes, with case and regex toggles.

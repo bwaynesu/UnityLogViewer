@@ -61,6 +61,9 @@ export const en = {
   driver: "Driver",
   errorSummary: "Error summary",
   noErrors: "No errors 🎉",
+  // live tail
+  liveTail: "Live",
+  liveTailTitle: "Follow this file as it grows (live tail)",
   // bookmarks
   bookmarks: "Bookmarks",
   bookmarkToggle: "Bookmark (B)",

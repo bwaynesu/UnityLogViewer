@@ -46,6 +46,8 @@ export const zhTW: Messages = {
   driver: "驅動程式",
   errorSummary: "錯誤摘要",
   noErrors: "沒有錯誤 🎉",
+  liveTail: "即時",
+  liveTailTitle: "即時追蹤此檔案的新增內容(live tail)",
   bookmarks: "書籤",
   bookmarkToggle: "書籤(B)",
   copyRef: "複製引用",
