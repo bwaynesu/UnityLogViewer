@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Row, Stats } from "./lib/api";
+import { t } from "./lib/i18n";
 
 interface Props {
   stats: Stats;
@@ -38,10 +39,10 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
 
   const sysRows: [string, string | null][] = [
     ["Unity", b.engine_version],
-    ["Graphics", b.graphics_api],
+    [t("graphics"), b.graphics_api],
     ["GPU", b.renderer],
     ["VRAM", b.vram_mb !== null ? `${b.vram_mb.toLocaleString()} MB` : null],
-    ["Driver", b.driver],
+    [t("driver"), b.driver],
   ];
 
   const copyAll = () => {
@@ -64,15 +65,15 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
         <button
           className="crash-notice"
           onClick={() => onJump(stats.crashId!)}
-          title="Jump to the native crash stack trace section"
+          title={t("crashTitle")}
         >
-          💥 Native crash in this file — jump to stack trace
+          {t("crashNotice")}
         </button>
       )}
 
       <section className="side-sec">
         <div className="side-head clickable" onClick={() => setShowSys((v) => !v)}>
-          {showSys ? "▾" : "▸"} System info
+          {showSys ? "▾" : "▸"} {t("systemInfo")}
           <span className="spacer" />
           <button
             className="mini"
@@ -80,9 +81,9 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
               e.stopPropagation();
               copyAll();
             }}
-            title="Copy summary for bug reports"
+            title={t("copySummaryTitle")}
           >
-            Copy
+            {t("copy")}
           </button>
         </div>
         {showSys && (
@@ -101,7 +102,7 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
 
       <section className={`side-sec sep ${showErr ? "grow" : ""}`}>
         <div className="side-head clickable" onClick={() => setShowErr((v) => !v)}>
-          {showErr ? "▾" : "▸"} Error summary
+          {showErr ? "▾" : "▸"} {t("errorSummary")}
         </div>
         {showErr && (
           <>
@@ -113,7 +114,7 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
               </span>
             </div>
             {top.length === 0 ? (
-              <p className="side-empty">No errors 🎉</p>
+              <p className="side-empty">{t("noErrors")}</p>
             ) : (
               <div className="top-errors">
                 {top.map((r) => (

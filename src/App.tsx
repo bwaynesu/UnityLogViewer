@@ -30,6 +30,7 @@ import {
   type Stats,
 } from "./lib/api";
 import { buildFilter, CHUNK, missingChunks, type LevelToggles } from "./lib/filter";
+import { setLocale, t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/update";
 import {
   clampScale,
@@ -101,6 +102,9 @@ export default function App() {
 
   const stats = tabs.find((t) => t.id === active)?.stats ?? null;
 
+  // Before any child renders, so a language change re-renders the whole UI translated.
+  setLocale(settings.language);
+
   useEffect(() => saveSettings(settings), [settings]);
   // Opt-in update check — runs at startup and whenever the mode changes (so
   // switching it on checks immediately instead of waiting for a relaunch).
@@ -112,7 +116,10 @@ export default function App() {
     const notify = async () => {
       const u = await checkForUpdate(await getVersion());
       if (!cancelled && u)
-        setNotice({ text: `Update available: v${u.version}`, action: { label: "Download", run: () => openUrl(u.url) } });
+        setNotice({
+          text: t("updateAvailable", { version: u.version }),
+          action: { label: t("download"), run: () => openUrl(u.url) },
+        });
     };
     (async () => {
       if (settings.updates !== "auto") return notify();
@@ -121,12 +128,15 @@ export default function App() {
         const update = await checkUpdater();
         if (!update) return;
         if (cancelled) return;
-        setNotice({ text: `Downloading update v${update.version}…` });
+        setNotice({ text: t("downloadingUpdate", { version: update.version }) });
         await update.downloadAndInstall();
         // ponytail: on a portable exe this runs the installer (installs the app);
         // gate on install location if that turns out to matter.
         if (!cancelled)
-          setNotice({ text: `Updated to v${update.version}`, action: { label: "Restart now", run: () => relaunch() } });
+          setNotice({
+            text: t("updatedTo", { version: update.version }),
+            action: { label: t("restartNow"), run: () => relaunch() },
+          });
       } catch {
         await notify(); // updater unavailable/blocked — fall back to the manual link
       }
@@ -470,7 +480,7 @@ export default function App() {
   const pickFile = async () => {
     const path = await openDialog({
       multiple: false,
-      filters: [{ name: "Log files", extensions: ["log", "txt"] }],
+      filters: [{ name: t("logFilesFilter"), extensions: ["log", "txt"] }],
     });
     if (typeof path === "string") load(path);
   };
@@ -481,11 +491,11 @@ export default function App() {
     const local = await resolvePath(active, f.file, root);
     if (local) {
       openInIde(active, settings.ideTemplate, local, f.line, root).catch((e) =>
-        setNotice({ text: `IDE launch failed: ${e}` }),
+        setNotice({ text: t("ideLaunchFailed", { error: String(e) }) }),
       );
       return true;
     }
-    setNotice({ text: `No local file for "${f.file}"`, copyPath: f.file, retryFrame: f });
+    setNotice({ text: t("noLocalFile", { file: f.file }), copyPath: f.file, retryFrame: f });
     return false;
   };
 
@@ -494,10 +504,7 @@ export default function App() {
     const dir = await openDialog({ directory: true });
     if (typeof dir !== "string") return;
     if (!(await validateRoot(dir))) {
-      setNotice({
-        text: "Not a Unity project root (needs Assets/ + ProjectSettings/ProjectVersion.txt)",
-        retryFrame: retry,
-      });
+      setNotice({ text: t("notUnityRoot"), retryFrame: retry });
       return;
     }
     const root = dir.replace(/\\/g, "/");
@@ -505,7 +512,7 @@ export default function App() {
     setNotice(null);
     if (!(await openFrame(retry, root))) {
       setNotice({
-        text: `Root set, but "${retry.file}" still not found under it`,
+        text: t("rootStillNotFound", { file: retry.file ?? "" }),
         copyPath: retry.file ?? undefined,
       });
     }
@@ -548,7 +555,7 @@ export default function App() {
     <button
       className={`lvl-btn ${key} ${toggles[key] ? "on" : ""}`}
       onClick={() => setToggles((t) => ({ ...t, [key]: !t[key] }))}
-      title={`${key} (${key === "log" ? "1" : key === "warning" ? "2" : "3"})`}
+      title={`${t(key === "log" ? "lvlLog" : key === "warning" ? "lvlWarning" : "lvlError")} (${key === "log" ? "1" : key === "warning" ? "2" : "3"})`}
     >
       {icon} {count.toLocaleString()}
     </button>
@@ -556,32 +563,32 @@ export default function App() {
 
   const overlay = loading && (
     <div className="overlay">
-      <div className="overlay-box">Parsing… {progress}%</div>
+      <div className="overlay-box">{t("parsing", { pct: progress })}</div>
     </div>
   );
 
   const tabbar = tabs.length > 0 && (
     <div className="tabbar">
-      {tabs.map((t) => (
+      {tabs.map((tb) => (
         <div
-          key={t.id}
-          className={`tab ${t.id === active ? "on" : ""}`}
-          title={t.stats?.path}
-          onClick={() => switchTab(t.id)}
+          key={tb.id}
+          className={`tab ${tb.id === active ? "on" : ""}`}
+          title={tb.stats?.path}
+          onClick={() => switchTab(tb.id)}
         >
-          <span className="tab-name">{t.stats ? fileName(t.stats.path) : "New Tab"}</span>
+          <span className="tab-name">{tb.stats ? fileName(tb.stats.path) : t("newTab")}</span>
           <span
             className="tab-close"
             onClick={(e) => {
               e.stopPropagation();
-              closeTab(t.id);
+              closeTab(tb.id);
             }}
           >
             ×
           </span>
         </div>
       ))}
-      <button className="mini" title="New tab" onClick={newTab}>
+      <button className="mini" title={t("newTab")} onClick={newTab}>
         +
       </button>
     </div>
@@ -599,12 +606,12 @@ export default function App() {
       <span className="msg">{notice.text}</span>
       {notice.retryFrame && (
         <button className="mini" onClick={() => pickRootAndRetry(notice.retryFrame!)}>
-          Set project root…
+          {t("setProjectRoot")}
         </button>
       )}
       {notice.copyPath && (
         <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
-          Copy path
+          {t("copyPath")}
         </button>
       )}
       {notice.action && (
@@ -637,13 +644,13 @@ export default function App() {
             </a>
           </h1>
           <p className="drop-hint" onClick={pickFile}>
-            Drop a Player.log here, or click to open a file
+            {t("dropHint")}
           </p>
           {error && <p className="error-text">{error}</p>}
           <div className="empty-cols">
             {recent.length > 0 && (
               <div className="empty-col">
-                <h3>Recent</h3>
+                <h3>{t("recent")}</h3>
                 {recent.map((p) => (
                   <button key={p} className="empty-item" title={p} onClick={() => load(p)}>
                     {fileName(p)}
@@ -654,7 +661,7 @@ export default function App() {
             )}
             {localLogs.length > 0 && (
               <div className="empty-col">
-                <h3>Local Player.log</h3>
+                <h3>{t("localLogs")}</h3>
                 {localLogs.slice(0, 12).map((l) => (
                   <button key={l.path} className="empty-item" title={l.path} onClick={() => load(l.path)}>
                     {fileName(l.path)}
@@ -667,7 +674,7 @@ export default function App() {
             )}
             {watched.length > 0 && (
               <div className="empty-col">
-                <h3>Watched folders</h3>
+                <h3>{t("watchedFolders")}</h3>
                 {watched.slice(0, 12).map((l) => (
                   <button key={l.path} className="empty-item" title={l.path} onClick={() => load(l.path)}>
                     {fileName(l.path)}
@@ -681,7 +688,7 @@ export default function App() {
           </div>
           </div>
         </div>
-        <button className="home-settings" title="Settings" onClick={() => setShowSettings(true)}>
+        <button className="home-settings" title={t("settings")} onClick={() => setShowSettings(true)}>
           ⚙
         </button>
         {noticeBar}
@@ -707,8 +714,8 @@ export default function App() {
         <input
           ref={searchRef}
           className={`search ${filterError ? "bad" : ""}`}
-          placeholder="Search…  -term excludes"
-          title={filterError ?? "Ctrl+F · plain terms AND-match, -term excludes"}
+          placeholder={t("searchPlaceholder")}
+          title={filterError ?? t("searchTitle")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -720,36 +727,36 @@ export default function App() {
         />
         <button
           className={`mini ${caseSensitive ? "on" : ""}`}
-          title="Match case"
+          title={t("matchCase")}
           onClick={() => setCaseSensitive((v) => !v)}
         >
           Aa
         </button>
         <button
           className={`mini ${useRegex ? "on" : ""}`}
-          title="Regular expression"
+          title={t("regex")}
           onClick={() => setUseRegex((v) => !v)}
         >
           .*
         </button>
         <button
           className={`mini ${collapse ? "on" : ""}`}
-          title="Collapse identical entries"
+          title={t("collapseTitle")}
           onClick={() => setCollapse((v) => !v)}
         >
-          Collapse
+          {t("collapse")}
         </button>
         {toggleBtn("log", "ⓘ", stats.log)}
         {toggleBtn("warning", "⚠", stats.warning)}
         {toggleBtn("error", "⛔", stats.error + stats.assert + stats.exception)}
         <button
           className={`mini ${settings.showSidebar ? "on" : ""}`}
-          title="System info & error summary"
+          title={t("sidebarToggle")}
           onClick={() => setSettings((s) => ({ ...s, showSidebar: !s.showSidebar }))}
         >
           ☰
         </button>
-        <button onClick={() => setShowSettings(true)} title="Settings">
+        <button onClick={() => setShowSettings(true)} title={t("settings")}>
           ⚙
         </button>
       </div>
@@ -808,8 +815,8 @@ export default function App() {
           <div className="detail-drag" onMouseDown={startDetailDrag} />
           <div className="detail-head">
             <span className={`icon ${sel.entry.level}`}>
-              {LEVEL_ICON[sel.entry.level]} {sel.entry.level} · #{sel.entry.id + 1} · line{" "}
-              {sel.entry.line_no}
+              {LEVEL_ICON[sel.entry.level]} {sel.entry.level} · #{sel.entry.id + 1} ·{" "}
+              {t("lineNo", { n: sel.entry.line_no })}
               {sel.count !== null && sel.count > 1 && ` · ×${sel.count.toLocaleString()}`}
             </span>
             <span className="spacer" />
@@ -820,19 +827,21 @@ export default function App() {
                 )
               }
             >
-              Copy
+              {t("copy")}
             </button>
             <button onClick={() => setSelected(null)}>✕</button>
           </div>
           {collapse && occurrences.length > 1 && (
             <div className="occurrences">
-              Occurrences:
+              {t("occurrences")}
               {occurrences.slice(0, 50).map((id) => (
                 <button key={id} className="mini" onClick={() => jumpToOccurrence(id)}>
                   #{id + 1}
                 </button>
               ))}
-              {occurrences.length > 50 && <span className="hint">…{occurrences.length} total</span>}
+              {occurrences.length > 50 && (
+                <span className="hint">{t("occurrencesTotal", { count: occurrences.length })}</span>
+              )}
             </div>
           )}
           <pre className="detail-msg">{sel.entry.message}</pre>
@@ -842,7 +851,7 @@ export default function App() {
                 <div
                   key={i}
                   className={`frame ${f.file && f.line !== null ? "linked" : ""}`}
-                  title={f.file && f.line !== null ? "Open in IDE" : undefined}
+                  title={f.file && f.line !== null ? t("openInIde") : undefined}
                   onClick={() => openFrame(f)}
                 >
                   {f.raw}
@@ -856,8 +865,10 @@ export default function App() {
       {noticeBar}
 
       <div className="statusbar">
-        {total.toLocaleString()} {collapse ? "groups" : "entries"} /{" "}
-        {stats.total.toLocaleString()} total
+        {t(collapse ? "statusGroups" : "statusEntries", {
+          shown: total.toLocaleString(),
+          total: stats.total.toLocaleString(),
+        })}
         {stats.banner.engine_version && <span> · Unity {stats.banner.engine_version}</span>}
         {stats.banner.renderer && <span> · {stats.banner.renderer}</span>}
       </div>

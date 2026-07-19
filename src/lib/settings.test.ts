@@ -50,6 +50,13 @@ test("mergeSettings keeps valid stored values and clamps out-of-range", () => {
   expect(mergeSettings({ sidebarW: 99999 }).sidebarW).toBe(4000);
 });
 
+test("language defaults to auto, accepts known locales, rejects unknown", () => {
+  expect(mergeSettings({}).language).toBe("auto");
+  expect(mergeSettings({ language: "zh-TW" }).language).toBe("zh-TW");
+  expect(mergeSettings({ language: "auto" }).language).toBe("auto");
+  expect(mergeSettings({ language: "fr" }).language).toBe("auto");
+});
+
 test("theme accepts the three modes, rejects anything else", () => {
   expect(mergeSettings({ theme: "light" }).theme).toBe("light");
   expect(mergeSettings({ theme: "gray" }).theme).toBe("gray");

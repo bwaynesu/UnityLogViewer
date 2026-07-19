@@ -1,5 +1,9 @@
+import { LOCALES, type Locale } from "./i18n";
+
 /** Persisted user settings. Stored in localStorage — survives restarts. */
 export interface Settings {
+  /** UI language; "auto" follows the system language (en fallback). */
+  language: "auto" | Locale;
   theme: "light" | "gray" | "dark";
   fontScale: number; // 0.7–2.0, 1 = 100%
   showIndex: boolean;
@@ -27,6 +31,7 @@ export interface Settings {
 }
 
 export const DEFAULTS: Settings = {
+  language: "auto",
   theme: "gray",
   fontScale: 1,
   showIndex: true,
@@ -52,6 +57,9 @@ export function mergeSettings(raw: unknown): Settings {
   const s = { ...DEFAULTS };
   if (typeof raw !== "object" || raw === null) return s;
   const r = raw as Record<string, unknown>;
+  if (r.language === "auto" || (typeof r.language === "string" && r.language in LOCALES)) {
+    s.language = r.language as Settings["language"];
+  }
   if (r.theme === "light" || r.theme === "gray" || r.theme === "dark") s.theme = r.theme;
   if (typeof r.fontScale === "number") s.fontScale = clampScale(r.fontScale);
   if (typeof r.showIndex === "boolean") s.showIndex = r.showIndex;

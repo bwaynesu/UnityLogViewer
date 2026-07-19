@@ -3,6 +3,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { isPortable, logAssociation, setLogAssociation } from "./lib/api";
+import { LOCALE_NAMES, t, type Locale } from "./lib/i18n";
 import { clampScale, DEFAULTS, type Settings } from "./lib/settings";
 
 const REPO_URL = "https://github.com/bwaynesu/UnityLogViewer";
@@ -51,26 +52,40 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
-          <b>Settings</b>
+          <b>{t("settings")}</b>
           <span className="spacer" />
-          <button onClick={() => onChange({ ...DEFAULTS })}>Reset all</button>
+          <button onClick={() => onChange({ ...DEFAULTS })}>{t("resetAll")}</button>
           <button onClick={onClose}>✕</button>
         </div>
 
-        <h3>Appearance</h3>
+        <h3>{t("appearance")}</h3>
         <label className="setting">
-          Theme
+          {t("language")}
+          <select
+            value={s.language}
+            onChange={(e) => set({ language: e.target.value as Settings["language"] })}
+          >
+            <option value="auto">{t("langAuto")}</option>
+            {(Object.keys(LOCALE_NAMES) as Locale[]).map((l) => (
+              <option key={l} value={l}>
+                {LOCALE_NAMES[l]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="setting">
+          {t("theme")}
           <select
             value={s.theme}
             onChange={(e) => set({ theme: e.target.value as Settings["theme"] })}
           >
-            <option value="light">Light</option>
-            <option value="gray">Gray</option>
-            <option value="dark">Dark</option>
+            <option value="light">{t("themeLight")}</option>
+            <option value="gray">{t("themeGray")}</option>
+            <option value="dark">{t("themeDark")}</option>
           </select>
         </label>
         <label className="setting">
-          Font size ({Math.round(fsPreview * 100)}%)
+          {t("fontSize")} ({Math.round(fsPreview * 100)}%)
           <input
             type="range"
             min={70}
@@ -81,7 +96,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             onPointerUp={(e) => commitFs(Number(e.currentTarget.value))}
             onKeyUp={(e) => commitFs(Number(e.currentTarget.value))}
           />
-          <span className="hint">Ctrl+wheel to zoom</span>
+          <span className="hint">{t("ctrlWheelHint")}</span>
         </label>
         <label className="setting">
           <input
@@ -89,7 +104,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             checked={s.showIndex}
             onChange={(e) => set({ showIndex: e.target.checked })}
           />
-          Show entry index column
+          {t("showIndexCol")}
         </label>
         <label className="setting">
           <input
@@ -97,12 +112,12 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             checked={s.rowTint}
             onChange={(e) => set({ rowTint: e.target.checked })}
           />
-          Tint warning / error rows
+          {t("tintRows")}
         </label>
         {s.rowTint && (
           <>
             <label className="setting sub">
-              Warning tint
+              {t("warningTint")}
               <input
                 type="color"
                 value={s.warningTint}
@@ -118,7 +133,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
               <span className="hint">{Math.round(s.warningAlpha * 100)}%</span>
             </label>
             <label className="setting sub">
-              Error tint
+              {t("errorTint")}
               <input
                 type="color"
                 value={s.errorTint}
@@ -136,21 +151,21 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
           </>
         )}
 
-        <h3>Behavior</h3>
+        <h3>{t("behavior")}</h3>
         <label className="setting">
-          After opening a file, scroll to
+          {t("openAt")}
           <select
             value={s.openAt}
             onChange={(e) => set({ openAt: e.target.value as Settings["openAt"] })}
           >
-            <option value="bottom">Bottom (newest)</option>
-            <option value="top">Top</option>
+            <option value="bottom">{t("openAtBottom")}</option>
+            <option value="top">{t("openAtTop")}</option>
           </select>
         </label>
 
-        <h3>Home page scan</h3>
+        <h3>{t("homeScan")}</h3>
         <label className="setting">
-          Scan depth (subfolder levels)
+          {t("scanDepth")}
           <input
             type="number"
             min={0}
@@ -183,12 +198,12 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
               }
             }}
           >
-            Add folder…
+            {t("addFolder")}
           </button>
-          <span className="hint">Besides LocalLow</span>
+          <span className="hint">{t("besidesLocalLow")}</span>
         </div>
 
-        <h3>System</h3>
+        <h3>{t("system")}</h3>
         <label className="setting">
           <input
             type="checkbox"
@@ -196,48 +211,47 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             disabled={assoc === null}
             onChange={(e) => toggleAssoc(e.target.checked)}
           />
-          Open .log files with Unity Log Viewer (double-click)
-          <span className="hint">Windows only</span>
+          {t("assocLabel")}
+          <span className="hint">{t("windowsOnly")}</span>
         </label>
         {assocNote && <div className="assoc-note">{assocNote}</div>}
         <label className="setting">
-          Updates
+          {t("updates")}
           <select
             value={portable && s.updates === "auto" ? "notify" : s.updates}
             onChange={(e) => set({ updates: e.target.value as Settings["updates"] })}
           >
-            <option value="off">Off</option>
-            <option value="notify">Notify me (download myself)</option>
+            <option value="off">{t("updatesOff")}</option>
+            <option value="notify">{t("updatesNotify")}</option>
             <option value="auto" disabled={portable}>
-              Download &amp; install automatically
+              {t("updatesAuto")}
             </option>
           </select>
-          {portable && <span className="hint">Auto needs the installer build</span>}
+          {portable && <span className="hint">{t("autoNeedsInstaller")}</span>}
         </label>
 
-        <h3>IDE</h3>
+        <h3>{t("ide")}</h3>
         <label className="setting">
-          Custom command
+          {t("customCommand")}
           <input
             className="wide"
             value={s.ideTemplate}
             onChange={(e) => set({ ideTemplate: e.target.value })}
-            placeholder="blank = auto (Visual Studio solution → system default)"
-            title="Advanced override. {path} and {line} are substituted, e.g. code -g &quot;{path}:{line}&quot;"
+            placeholder={t("idePlaceholder")}
+            title={t("ideTitle")}
           />
         </label>
 
-        <h3>About</h3>
+        <h3>{t("about")}</h3>
         <div className="about">
           <div>Unity Log Viewer{version && ` v${version}`}</div>
           <div>Copyright © 2026 bwaynesu</div>
           <div>
-            Licensed under{" "}
-            <a onClick={() => openUrl(LICENSE_URL)}>AGPL-3.0-or-later</a>. This program comes with
-            absolutely no warranty.
+            {t("license")}: <a onClick={() => openUrl(LICENSE_URL)}>AGPL-3.0-or-later</a>
           </div>
+          <div>{t("noWarranty")}</div>
           <div>
-            <a onClick={() => openUrl(REPO_URL)}>Source code</a>
+            <a onClick={() => openUrl(REPO_URL)}>{t("sourceCode")}</a>
           </div>
         </div>
       </div>
