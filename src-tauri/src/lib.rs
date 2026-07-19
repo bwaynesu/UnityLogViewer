@@ -458,7 +458,7 @@ fn set_log_association(enable: bool) -> Result<String, String> {
         let err = |what: &str| format!("registry write failed ({what})");
         if enable {
             let exe = std::env::current_exe().map_err(|e| e.to_string())?;
-            let cmd = format!("\"{}\" \"%1\"", exe.display());
+            let cmd = open_command(&exe.display().to_string());
             reg_run(&["add", &format!(r"{progid}\shell\open\command"), "/ve", "/d", &cmd, "/f"])
                 .ok_or_else(|| err("command"))?;
             reg_run(&["add", &progid, "/ve", "/d", "Unity log file", "/f"])
@@ -499,6 +499,39 @@ fn set_log_association(enable: bool) -> Result<String, String> {
     {
         let _ = enable;
         Err("File association is only supported on Windows".into())
+    }
+}
+
+/// The `shell\open\command` value that makes double-clicking a `.log` launch us:
+/// `"<exe path>" "%1"`. Shared by enable and the startup self-heal so both build
+/// a byte-identical string (the heal compares the stored value against this).
+#[cfg(target_os = "windows")]
+fn open_command(exe: &str) -> String {
+    format!("\"{exe}\" \"%1\"")
+}
+
+/// Repair the `.log` association when the executable has moved or been renamed.
+/// Portable builds carry the version in their filename, so every update is a
+/// different file; installed builds can also move if the install path changes.
+/// If our ProgID is still the Classes default, rewrite its open-command to the
+/// *current* exe. Touches only the entry we own (never UserChoice, never a
+/// foreign default) and writes only when it actually differs, so it's a cheap
+/// no-op on a normal launch. The one gap it can't cover — double-clicking a
+/// renamed portable *before* ever launching the new exe — self-corrects the
+/// first time the new exe runs.
+#[cfg(target_os = "windows")]
+fn heal_log_association() {
+    if classes_progid().as_deref() != Some(LOG_PROGID) {
+        return; // association isn't ours (or absent) — nothing to repair
+    }
+    let Ok(exe) = std::env::current_exe() else {
+        return;
+    };
+    let desired = open_command(&exe.display().to_string());
+    let key = format!(r"HKCU\Software\Classes\{LOG_PROGID}\shell\open\command");
+    let current = reg_run(&["query", &key, "/ve"]).and_then(|o| paths::reg_sz_value(&o));
+    if current.as_deref() != Some(desired.as_str()) {
+        let _ = reg_run(&["add", &key, "/ve", "/d", &desired, "/f"]);
     }
 }
 
@@ -673,11 +706,14 @@ fn open_in_ide(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Warm the IDE-locator caches off the UI path: the Unity-prefs reg query is
-    // ~1s, so priming it now keeps the first "open in IDE" click snappy.
+    // ~1s, so priming it now keeps the first "open in IDE" click snappy. Also
+    // repair the .log association here in case this exe was renamed/moved since
+    // it was enabled (portable builds are versioned in their filename).
     #[cfg(target_os = "windows")]
     std::thread::spawn(|| {
         let _ = unity_script_editor();
         let _ = devenv_path();
+        heal_log_association();
     });
 
     tauri::Builder::default()
@@ -714,4 +750,25 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod assoc_tests {
+    use super::open_command;
+
+    #[test]
+    fn open_command_quotes_exe_and_placeholder() {
+        assert_eq!(open_command(r"C:\a\App.exe"), "\"C:\\a\\App.exe\" \"%1\"");
+    }
+
+    #[test]
+    fn heal_rewrites_only_when_the_exe_path_changed() {
+        // A versioned portable stored one path; the running exe is a different
+        // file → the stored command differs, so the self-heal must rewrite.
+        let stored = open_command(r"C:\old\UnityLogViewer_1.1.0_x64_portable.exe");
+        let current = open_command(r"C:\new\UnityLogViewer_1.2.0_x64_portable.exe");
+        assert_ne!(stored, current);
+        // Same path on a normal relaunch → identical → no write (cheap no-op).
+        assert_eq!(current, open_command(r"C:\new\UnityLogViewer_1.2.0_x64_portable.exe"));
+    }
 }
