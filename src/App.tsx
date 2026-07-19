@@ -393,9 +393,11 @@ export default function App() {
       const follow = reset || vEnd >= total - 2; // near bottom → keep following
       cacheRef.current = new Map();
       fetchPage(filter, 0, 1).then((p) => {
+        // scroll via pendingScrollRef, not directly: the virtualizer still has
+        // the OLD count here, so scrollToIndex would clamp one update behind
+        if (follow) pendingScrollRef.current = "bottom";
         setTotal(p.total);
         bump((n) => n + 1);
-        if (follow && p.total > 0) virtualizer.scrollToIndex(p.total - 1, { align: "end" });
       });
       setTailTick((n) => n + 1);
     });
