@@ -42,7 +42,11 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Updater signing — set these repo secrets or the build fails (createUpdaterArtifacts is on).
+          # Updater signing (createUpdaterArtifacts is on, so the private key is required).
+          # Only TAURI_SIGNING_PRIVATE_KEY needs to be a repo secret. The key has no
+          # password, so leave the PASSWORD secret unset — an absent secret resolves to
+          # "" here, which is exactly the empty password tauri expects (GitHub rejects
+          # empty-valued secrets anyway, so don't try to create it).
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
