@@ -6,6 +6,8 @@ A desktop app for reading Unity `Player.log` files. It parses the raw log into s
 
 `Player.log` has no timestamps and no level prefixes. In a text editor it is a flat wall of lines with stack traces broken across many rows. This tool rebuilds each entry with its stack trace, infers the severity, groups repeated messages, and lets you click a stack frame to open that file and line in your IDE.
 
+![Unity Log Viewer](./docs/images/Preview.png)
+
 ## Why this exists
 
 Player logs from a shipped game run to hundreds of megabytes and hundreds of thousands of lines. A general text editor gets sluggish at that size and shows none of the structure the format carries: call-site frames, exception blocks, the startup banner.

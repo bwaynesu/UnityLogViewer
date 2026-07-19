@@ -1,10 +1,12 @@
 # Unity Log Viewer
 
-*📖 English version: [README.md](README.md)。*
+*English version: [README.md](README.md)。*
 
 一款檢視 Unity `Player.log` 的桌面工具。它把原始日誌解析成有結構、可搜尋的條目，讓那些會拖垮文字編輯器的大型日誌也能迅速開啟、順暢操作。
 
 `Player.log` 本身沒有時間戳，也沒有等級前綴，用文字編輯器打開就是一整片沒有結構的文字，堆疊追蹤還被拆散成好幾行。這個工具會把每一筆條目連同堆疊追蹤重建起來、判斷嚴重等級、聚合重複訊息，你也可以點一下堆疊幀，直接在 IDE 打開對應的檔案與行號。
+
+![Unity Log Viewer](./docs/images/Preview.png)
 
 ## 製作理由
 
