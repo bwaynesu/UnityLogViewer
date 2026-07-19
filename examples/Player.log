@@ -1,0 +1,383 @@
+Mono path[0] = 'C:/Program Files (x86)/Steam/steamapps/common/SpaceMiner/SpaceMiner_Data/Managed'
+Mono config path = 'C:/Program Files (x86)/Steam/steamapps/common/SpaceMiner/MonoBleedingEdge/etc'
+Initialize engine version: 6000.0.23f1 (b8e2c1a4f907)
+[Subsystems] Discovering subsystems at path C:/Program Files (x86)/Steam/steamapps/common/SpaceMiner/SpaceMiner_Data/UnitySubsystems
+GfxDevice: creating device client; kGfxThreadingModeThreaded
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 3060 (ID=0x2504)
+    Vendor:   NVIDIA
+    VRAM:     12038 MB
+    Driver:   31.0.15.3623
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  0.213 seconds
+- Finished resetting the current domain, in  0.005 seconds
+<RI> Initializing input.
+Using Windows.Gaming.Input
+<RI> Input initialized.
+UnloadTime: 1.642300 ms
+
+SceneLoader: Load Scene Assets/Scenes/MainMenu.unity
+AudioManager: initialized 3 mixer groups
+Save data found in 2 slots
+
+Player spawned at checkpoint 3
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Gameplay.PlayerSpawner:Spawn(Int32) (at Assets/Scripts/Gameplay/PlayerSpawner.cs:64)
+SpaceMiner.Gameplay.GameLoop:StartRun() (at Assets/Scripts/Gameplay/GameLoop.cs:120)
+
+Texture 'nebula_backdrop' is not marked as readable; runtime sampling will fail.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.Assets.TextureValidator:Check(Texture2D) (at Assets/Scripts/Assets/TextureValidator.cs:88)
+SpaceMiner.Assets.AssetLoader:LoadAll() (at Assets/Scripts/Assets/AssetLoader.cs:52)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+MeshCollider on 'AsteroidChunk' has a non-convex mesh; physics may be unstable.
+UnityEngine.Debug:LogWarning(Object)
+SpaceMiner.World.AsteroidField:SpawnChunk() (at Assets/Scripts/World/AsteroidField.cs:143)
+
+Failed to load save file: checksum mismatch in slot 2.
+UnityEngine.Debug:LogError(Object)
+SpaceMiner.Save.SaveSystem:Load(Int32) (at Assets/Scripts/Save/SaveSystem.cs:134)
+SpaceMiner.UI.MainMenu:OnContinuePressed() (at Assets/Scripts/UI/MainMenu.cs:73)
+
+Shader error in 'SpaceMiner/NebulaFog': undeclared identifier '_Density' at line 57 (on d3d11)
+UnityEngine.Debug:LogError(Object)
+SpaceMiner.Rendering.ShaderWarmup:Warm(Shader) (at Assets/Scripts/Rendering/ShaderWarmup.cs:29)
+
+Shader error in 'SpaceMiner/NebulaFog': undeclared identifier '_Density' at line 57 (on d3d11)
+UnityEngine.Debug:LogError(Object)
+SpaceMiner.Rendering.ShaderWarmup:Warm(Shader) (at Assets/Scripts/Rendering/ShaderWarmup.cs:29)
+
+Shader error in 'SpaceMiner/NebulaFog': undeclared identifier '_Density' at line 57 (on d3d11)
+UnityEngine.Debug:LogError(Object)
+SpaceMiner.Rendering.ShaderWarmup:Warm(Shader) (at Assets/Scripts/Rendering/ShaderWarmup.cs:29)
+
+Assertion failed: object pool exhausted before frame end
+UnityEngine.Debug:LogAssertion(Object)
+SpaceMiner.Core.ObjectPool:Rent() (at Assets/Scripts/Core/ObjectPool.cs:44)
+
+[Netcode] Snapshot 10432 applied (latency 41 ms, 11 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10433 applied (latency 42 ms, 12 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10434 applied (latency 43 ms, 13 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10435 applied (latency 44 ms, 14 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10436 applied (latency 45 ms, 15 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10437 applied (latency 46 ms, 10 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10438 applied (latency 47 ms, 11 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10439 applied (latency 48 ms, 12 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10440 applied (latency 49 ms, 13 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10441 applied (latency 50 ms, 14 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10442 applied (latency 51 ms, 15 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10443 applied (latency 52 ms, 10 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10444 applied (latency 53 ms, 11 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10445 applied (latency 54 ms, 12 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10446 applied (latency 55 ms, 13 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Netcode] Snapshot 10447 applied (latency 56 ms, 14 entities)
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.NetworkClient:ApplySnapshot(Int32) (at Assets/Scripts/Net/NetworkClient.cs:210)
+
+[Heartbeat] game server alive, uptime 00:00:37
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:01:14
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:01:51
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:02:28
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:03:05
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:03:42
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:04:19
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:04:56
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:05:33
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:06:10
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:06:47
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+[Heartbeat] game server alive, uptime 00:07:24
+UnityEngine.Debug:Log(Object)
+SpaceMiner.Net.SessionMonitor:Ping() (at Assets/Scripts/Net/SessionMonitor.cs:31)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+NullReferenceException: Object reference not set to an instance of an object.
+  at SpaceMiner.Enemy.EnemyController.UpdateTarget () [0x00021] in <7f3ac9d21e40>:0
+  at SpaceMiner.Enemy.EnemyController.Update () [0x0004c] in C:\build\SpaceMiner\Assets\Scripts\Enemy\EnemyController.cs:96
+UnityEngine.Debug:LogException(Exception)
+UnityEngine.StackTraceUtility:PostprocessStacktrace(String, Boolean)
+SpaceMiner.Enemy.EnemyController:Update() (at Assets/Scripts/Enemy/EnemyController.cs:57)
+
+Received signal SIGSEGV
+Obtained 9 stack frames.
+Crash!!!
+========== OUTPUTTING STACK TRACE ==================
+
+0x00007FF6A1B2C3D4 (UnityPlayer) GetStackTrace
+0x00007FF6A1B2AA10 (UnityPlayer) DebugStringToFile
+0x00007FF6A0FE7C22 (UnityPlayer) EnemyController_Update
+0x00007FF6A10034A1 (UnityPlayer) BaseBehaviourManager::CommonUpdate
+0x00007FF6A11289FF (UnityPlayer) PlayerLoopController::UpdateScene
+0x00007FFE12345678 (KERNEL32) BaseThreadInitThunk
+0x00007FFE1A2B3C4D (ntdll) RtlUserThreadStart
+
+========== END OF STACKTRACE ===========
+
+A crash has been intercepted by the crash handler. For call stack and other details, see the latest crash report generated in:
+ * C:/Users/<user>/AppData/Local/Temp/ExampleStudio/SpaceMiner/Crashes
