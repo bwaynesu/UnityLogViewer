@@ -106,10 +106,6 @@ Windows 10/11 is the supported and tested platform. The parsing core is cross-pl
 
 Built with help from [Claude](https://www.anthropic.com/claude); the author reviewed the design decisions and the changes.
 
-## Roadmap
-
-- Bookmarks
-
 ## License
 
 Copyright © 2026 bwaynesu. Licensed under the [GNU Affero General Public License v3.0 or later](LICENSE) (AGPL-3.0-or-later).

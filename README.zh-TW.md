@@ -106,10 +106,6 @@ npm run tauri build    # 建置 UnityLogViewer.exe 與安裝檔
 
 開發過程中借助 [Claude](https://www.anthropic.com/claude) 協助，設計決策與變更都由作者審閱。
 
-## 預計開發
-
-- 書籤
-
 ## 授權
 
 Copyright © 2026 bwaynesu。採用 [GNU Affero General Public License v3.0 或更新版本](LICENSE)（AGPL-3.0-or-later）授權。
