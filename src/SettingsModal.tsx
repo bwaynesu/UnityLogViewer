@@ -17,12 +17,17 @@ interface Props {
 /** Settings dialog. Sections; split into tabs only if this outgrows one screen. */
 export default function SettingsModal({ settings: s, onChange, onClose }: Props) {
   const set = (patch: Partial<Settings>) => onChange({ ...s, ...patch });
+  const commitFs = (pct: number) => set({ fontScale: clampScale(pct / 100) });
 
   // .log association lives in the registry, not in Settings — the
   // checkbox reflects and writes actual system state.
   const [assoc, setAssoc] = useState<boolean | null>(null);
   const [assocNote, setAssocNote] = useState<string | null>(null);
   const [version, setVersion] = useState("");
+  // Font-size slider shows this while dragging; committed to settings on release so
+  // the modal doesn't reflow (and slide out from under the cursor) mid-drag.
+  const [fsPreview, setFsPreview] = useState(s.fontScale);
+  useEffect(() => setFsPreview(s.fontScale), [s.fontScale]);
   useEffect(() => {
     logAssociation().then(setAssoc);
     getVersion().then(setVersion).catch(() => {});
@@ -62,14 +67,16 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
           </select>
         </label>
         <label className="setting">
-          Font size ({Math.round(s.fontScale * 100)}%)
+          Font size ({Math.round(fsPreview * 100)}%)
           <input
             type="range"
             min={70}
             max={200}
             step={10}
-            value={s.fontScale * 100}
-            onChange={(e) => set({ fontScale: clampScale(Number(e.target.value) / 100) })}
+            value={fsPreview * 100}
+            onChange={(e) => setFsPreview(clampScale(Number(e.target.value) / 100))}
+            onPointerUp={(e) => commitFs(Number(e.currentTarget.value))}
+            onKeyUp={(e) => commitFs(Number(e.currentTarget.value))}
           />
           <span className="hint">Ctrl+wheel to zoom</span>
         </label>
