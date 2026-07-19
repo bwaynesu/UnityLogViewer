@@ -71,7 +71,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             value={s.fontScale * 100}
             onChange={(e) => set({ fontScale: clampScale(Number(e.target.value) / 100) })}
           />
-          <span className="hint">Ctrl+wheel · Ctrl+= / Ctrl+- / Ctrl+0</span>
+          <span className="hint">Ctrl+wheel to zoom</span>
         </label>
         <label className="setting">
           <input
@@ -175,7 +175,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
           >
             Add folder…
           </button>
-          <span className="hint">extra folders listed on the home page (besides LocalLow)</span>
+          <span className="hint">Besides LocalLow</span>
         </div>
 
         <h3>System</h3>
@@ -187,7 +187,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             onChange={(e) => toggleAssoc(e.target.checked)}
           />
           Open .log files with Unity Log Viewer (double-click)
-          <span className="hint">Windows only · per-user, no admin needed</span>
+          <span className="hint">Windows only</span>
         </label>
         {assocNote && <div className="assoc-note">{assocNote}</div>}
         <label className="setting">
@@ -197,7 +197,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
             <option value="notify">Notify me (download myself)</option>
             <option value="auto">Download &amp; install automatically</option>
           </select>
-          <span className="hint">Checks GitHub once at launch · off by default · auto needs the installer build</span>
+          <span className="hint">Auto needs the installer build</span>
         </label>
 
         <h3>IDE</h3>
