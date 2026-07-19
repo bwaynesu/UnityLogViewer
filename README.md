@@ -56,7 +56,7 @@ Parsing runs in a native Rust core on a background thread, so the window stays r
 
 ## Privacy
 
-Fully offline. It reads local files and makes no network requests: no telemetry, nothing leaves the machine. An optional "check for updates" setting may be added later and will default to off.
+Fully offline by default. It reads local files and makes no network requests: no telemetry, nothing leaves the machine. The one exception is opt-in: a "check for updates" setting (off by default) that, when enabled, contacts GitHub at startup to look for a newer release — either notifying you with a download link, or, on installed builds, downloading and installing it.
 
 ## Install
 
@@ -102,7 +102,6 @@ Built with help from [Claude](https://www.anthropic.com/claude); the author revi
 ## Roadmap
 
 - Bookmarks
-- Optional update check (off by default)
 
 ## License
 
