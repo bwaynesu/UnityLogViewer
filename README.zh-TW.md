@@ -35,7 +35,7 @@
 - 把重複訊息摺疊成群組，標上 ×N 次數。訊息裡的數值會被遮罩，所以只有數字不同的洗版訊息會併成同一群。
 - 詳細面板會顯示完整訊息、格式化後的堆疊追蹤，並提供一個複製原始條目的按鈕。
 
-**尋找**
+**搜尋**
 - 搜尋範圍同時涵蓋訊息與堆疊幀：以空白分隔的關鍵字為 AND 條件，`-term` 為排除，另有大小寫與正規表示式切換。
 - 用 F8/Shift+F8 在錯誤之間跳轉，用 1/2/3 切換等級篩選；篩選變動時，你原本選取的條目會保留。
 - 標示原生崩潰傾印（含 `OUTPUTTING STACK TRACE` 區段的檔案），並附上跳到該處的連結。
@@ -47,7 +47,7 @@
 - 從日誌 banner 整理出來的系統資訊卡（Unity 版本、繪圖 API、GPU、VRAM、驅動程式），並附一個把摘要複製起來、方便貼進 bug 回報的按鈕。
 - 全檔各等級的計數，以及前 10 大重複錯誤清單，每一項都能點擊跳到該條目。
 
-**使用體驗**
+**介面**
 - 分頁，亮/灰/深 三種主題，可調整的字體大小（Ctrl+滾輪），列底色標示。偏好設定都保存在本機。
 
 ## 效能
@@ -64,11 +64,14 @@
 
 **⚠️ 第一次執行：** 這些發行版沒有經過程式碼簽章（簽章需要付費憑證），所以第一次執行安裝檔或程式時，Windows 可能會跳出「Windows 已保護您的電腦」的 SmartScreen 視窗。點「其他資訊」再點「仍要執行」即可。這對未簽章的開源程式是正常現象。
 
-從原始碼建置需要 [Rust](https://www.rust-lang.org/tools/install)（stable，Windows 上需要 MSVC 工具鏈）、[Node.js](https://nodejs.org/) 20+，以及 [Tauri 環境需求](https://tauri.app/start/prerequisites/)。WebView2 隨 Windows 10/11 一起附帶。
+從原始碼建置需要 [Rust](https://www.rust-lang.org/tools/install)（stable，Windows 上需要 MSVC 工具鏈）、[Node.js](https://nodejs.org/) 20+，以及 [Tauri 環境需求](https://tauri.app/start/prerequisites/)。WebView2 隨 Windows 10/11 一起附帶。`npm run tauri build` 會為自動更新產物簽章，因此需要一把更新簽章金鑰：自行產生一次（遇到密碼提示直接按 Enter 留空即可），並在建置前把 `TAURI_SIGNING_PRIVATE_KEY` 指向它。
 
 ```bash
 npm install
-npm run tauri dev      # 開發模式執行
+npm run tauri dev      # 開發模式執行（不需要金鑰）
+
+npm run tauri signer generate -- -w path\to\updater.key   # 一次性；金鑰請放在 repo 外
+set TAURI_SIGNING_PRIVATE_KEY=path\to\updater.key
 npm run tauri build    # 建置 UnityLogViewer.exe 與安裝檔
 ```
 
@@ -91,7 +94,7 @@ npm run tauri build    # 建置 UnityLogViewer.exe 與安裝檔
 
 目前支援並測試過的平台是 Windows 10/11。解析核心本身是跨平台的，但本機日誌掃描、IDE 整合和副檔名關聯目前只支援 Windows。macOS 和 Linux 還沒有對應的建置。
 
-## 技術堆疊
+## 技術
 
 [Tauri 2](https://tauri.app/)、React + TypeScript（Vite），以及一個無外部相依的 Rust 解析核心（`ulv-core`）。解析邏輯和 Tauri 分開，並以單元測試涵蓋（`cargo test`、`npm test`）。
 
@@ -99,7 +102,7 @@ npm run tauri build    # 建置 UnityLogViewer.exe 與安裝檔
 
 開發過程中借助 [Claude](https://www.anthropic.com/claude) 協助，設計決策與變更都由作者審閱。
 
-## 開發藍圖
+## 預計開發
 
 - 書籤
 

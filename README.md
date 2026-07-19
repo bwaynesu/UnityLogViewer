@@ -64,11 +64,14 @@ Download an installer or the portable exe from the [Releases](../../releases) pa
 
 **⚠️ First run:** the release builds are not code-signed (signing needs a paid certificate), so the first time you run the installer or the app, Windows may show a **"Windows protected your PC"** SmartScreen dialog. Click **More info**, then **Run anyway**. This is expected for an unsigned open-source app.
 
-Building from source needs [Rust](https://www.rust-lang.org/tools/install) (stable, MSVC toolchain on Windows), [Node.js](https://nodejs.org/) 20+, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). WebView2 ships with Windows 10/11.
+Building from source needs [Rust](https://www.rust-lang.org/tools/install) (stable, MSVC toolchain on Windows), [Node.js](https://nodejs.org/) 20+, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/). WebView2 ships with Windows 10/11. `npm run tauri build` signs its auto-updater artifacts, so it needs an updater signing key: generate your own once (press Enter at password prompts to leave it empty) and point `TAURI_SIGNING_PRIVATE_KEY` at it before building.
 
 ```bash
 npm install
-npm run tauri dev      # run in development
+npm run tauri dev      # run in development (no key needed)
+
+npm run tauri signer generate -- -w path\to\updater.key   # one-time; keep the key outside the repo
+set TAURI_SIGNING_PRIVATE_KEY=path\to\updater.key
 npm run tauri build    # build UnityLogViewer.exe and installers
 ```
 
