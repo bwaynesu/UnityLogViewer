@@ -402,6 +402,12 @@ textarea {
   white-space: nowrap;
 }
 
+/* bookmark star: list rows, detail-head toggle, sidebar list */
+.bm {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
 .side-counts {
   display: flex;
   gap: 12px;

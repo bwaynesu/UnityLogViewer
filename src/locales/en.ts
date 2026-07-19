@@ -61,6 +61,11 @@ export const en = {
   driver: "Driver",
   errorSummary: "Error summary",
   noErrors: "No errors 🎉",
+  // bookmarks
+  bookmarks: "Bookmarks",
+  bookmarkToggle: "Bookmark (B)",
+  copyRef: "Copy ref",
+  copyRefTitle: "Copy a text reference (file name + entry number)",
   // settings modal
   resetAll: "Reset all",
   appearance: "Appearance",

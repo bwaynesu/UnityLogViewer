@@ -38,6 +38,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 **Finding**
 - Search the message and stack frames together: space-separated terms are AND-matched, `-term` excludes, with case and regex toggles.
 - Jump between errors (F8 / Shift+F8) and filter by level (1 / 2 / 3); the selected entry stays put when filters change.
+- Bookmark entries (B or the ★ button) and jump back from the sidebar list; "Copy ref" copies a `file #entry` text reference for sharing.
 - Flags native crash dumps (an `OUTPUTTING STACK TRACE` section) with a link to jump to it.
 
 **IDE deep-linking**
@@ -85,6 +86,7 @@ The executable lands in `src-tauri/target/release/` and the MSI/NSIS installers 
 | `F8` / `Shift+F8` | Next / previous error |
 | `1` / `2` / `3` | Toggle Log / Warning / Error filters |
 | `Ctrl+F` | Focus search |
+| `B` | Toggle bookmark on the selected entry |
 | `Esc` | Clear search |
 | `↑` / `↓` | Move selection |
 | `Home` / `End` | Jump to top / bottom |

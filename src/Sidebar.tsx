@@ -1,11 +1,14 @@
 import { Fragment, useState } from "react";
 import type { Row, Stats } from "./lib/api";
+import type { Bookmark } from "./lib/bookmarks";
 import { t } from "./lib/i18n";
 
 interface Props {
   stats: Stats;
   top: Row[];
+  bookmarks: Bookmark[];
   onJump: (id: number) => void;
+  onRemoveBookmark: (id: number) => void;
   width: number;
   onWidth: (w: number) => void;
 }
@@ -19,10 +22,19 @@ const LEVEL_ICON: Record<Row["entry"]["level"], string> = {
 };
 
 /** System info card + whole-file error summary. */
-export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
+export default function Sidebar({
+  stats,
+  top,
+  bookmarks,
+  onJump,
+  onRemoveBookmark,
+  width,
+  onWidth,
+}: Props) {
   const b = stats.banner;
   const [showSys, setShowSys] = useState(true);
   const [showErr, setShowErr] = useState(true);
+  const [showBm, setShowBm] = useState(true);
 
   const startDrag = (down: React.MouseEvent) => {
     down.preventDefault();
@@ -134,6 +146,39 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
           </>
         )}
       </section>
+
+      {bookmarks.length > 0 && (
+        <section className={`side-sec sep ${showBm ? "grow" : ""}`}>
+          <div className="side-head clickable" onClick={() => setShowBm((v) => !v)}>
+            {showBm ? "▾" : "▸"} {t("bookmarks")}
+          </div>
+          {showBm && (
+            <div className="top-errors">
+              {bookmarks.map((m) => (
+                <div
+                  key={m.id}
+                  className="top-error"
+                  title={m.text}
+                  onClick={() => onJump(m.id)}
+                >
+                  <span className="bm">★</span>
+                  <span className="badge">#{m.id + 1}</span>
+                  <span className="msg">{m.text}</span>
+                  <button
+                    className="mini"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveBookmark(m.id);
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </aside>
   );
 }

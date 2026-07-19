@@ -29,6 +29,7 @@ import {
   type StackFrame,
   type Stats,
 } from "./lib/api";
+import { toggleBookmark, type Bookmark } from "./lib/bookmarks";
 import { buildFilter, CHUNK, missingChunks, type LevelToggles } from "./lib/filter";
 import { setLocale, t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/update";
@@ -79,6 +80,8 @@ export default function App() {
   const [selected, setSelected] = useState<Selection>(null);
   const [occurrences, setOccurrences] = useState<number[]>([]);
   const [top, setTop] = useState<Row[]>([]);
+  // session-only bookmarks, keyed by file id (see lib/bookmarks.ts)
+  const [bookmarks, setBookmarks] = useState<Record<number, Bookmark[]>>({});
   const [recent, setRecent] = useState<string[]>(loadRecent);
   const [localLogs, setLocalLogs] = useState<LocalLog[]>([]);
   const [watched, setWatched] = useState<LocalLog[]>([]);
@@ -224,6 +227,7 @@ export default function App() {
 
   const closeTab = (id: number) => {
     if (id > 0) closeFile(id); // empty tabs have no Rust-side file
+    setBookmarks(({ [id]: _, ...rest }) => rest);
     setTabs((ts) => {
       const idx = ts.findIndex((t) => t.id === id);
       const next = ts.filter((t) => t.id !== id);
@@ -374,6 +378,16 @@ export default function App() {
     [collapse, filter, active],
   );
 
+  const marks = active !== null ? bookmarks[active] ?? [] : [];
+  const markIds = useMemo(() => new Set(marks.map((b) => b.id)), [marks]);
+
+  const toggleMark = useCallback(() => {
+    if (!selected || active === null) return;
+    const e = selected.row.entry;
+    const mark: Bookmark = { id: e.id, level: e.level, text: e.message.split("\n")[0] };
+    setBookmarks((bs) => ({ ...bs, [active]: toggleBookmark(bs[active] ?? [], mark) }));
+  }, [selected, active]);
+
   const jumpToError = useCallback(
     (backwards: boolean) => {
       if (active === null) return;
@@ -433,7 +447,8 @@ export default function App() {
         e.preventDefault();
         return;
       }
-      if (e.key === "1") setToggles((t) => ({ ...t, log: !t.log }));
+      if (e.key.toLowerCase() === "b") toggleMark();
+      else if (e.key === "1") setToggles((t) => ({ ...t, log: !t.log }));
       else if (e.key === "2") setToggles((t) => ({ ...t, warning: !t.warning }));
       else if (e.key === "3") setToggles((t) => ({ ...t, error: !t.error }));
       else if (e.key === "Home") virtualizer.scrollToIndex(0);
@@ -786,6 +801,7 @@ export default function App() {
                         </span>
                       )}
                       <span className={`icon ${e.level}`}>{LEVEL_ICON[e.level]}</span>
+                      {markIds.has(e.id) && <span className="bm">★</span>}
                       <span className="msg">{e.message.split("\n")[0]}</span>
                       {row.count !== null && row.count > 1 && (
                         <span className="badge">×{row.count.toLocaleString()}</span>
@@ -803,7 +819,12 @@ export default function App() {
           <Sidebar
             stats={stats}
             top={top}
+            bookmarks={marks}
             onJump={jumpToEntry}
+            onRemoveBookmark={(id) =>
+              active !== null &&
+              setBookmarks((bs) => ({ ...bs, [active]: (bs[active] ?? []).filter((b) => b.id !== id) }))
+            }
             width={settings.sidebarW}
             onWidth={(w) => setSettings((s) => ({ ...s, sidebarW: w }))}
           />
@@ -820,6 +841,23 @@ export default function App() {
               {sel.count !== null && sel.count > 1 && ` · ×${sel.count.toLocaleString()}`}
             </span>
             <span className="spacer" />
+            <button
+              className={markIds.has(sel.entry.id) ? "bm" : ""}
+              title={t("bookmarkToggle")}
+              onClick={toggleMark}
+            >
+              {markIds.has(sel.entry.id) ? "★" : "☆"}
+            </button>
+            <button
+              title={t("copyRefTitle")}
+              onClick={() =>
+                navigator.clipboard.writeText(
+                  `${fileName(stats.path)} #${sel.entry.id + 1} [${sel.entry.level}] ${sel.entry.message.split("\n")[0]}`,
+                )
+              }
+            >
+              {t("copyRef")}
+            </button>
             <button
               onClick={() =>
                 navigator.clipboard.writeText(
