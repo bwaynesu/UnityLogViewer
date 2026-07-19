@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import type { Row, Stats } from "./lib/api";
 import { t } from "./lib/i18n";
 
@@ -90,10 +90,10 @@ export default function Sidebar({ stats, top, onJump, width, onWidth }: Props) {
           <dl className="sysinfo">
             {sysRows.map(([k, v]) =>
               v !== null ? (
-                <div key={k} className="sysrow" title={v}>
+                <Fragment key={k}>
                   <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
+                  <dd title={v}>{v}</dd>
+                </Fragment>
               ) : null,
             )}
           </dl>
