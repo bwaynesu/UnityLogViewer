@@ -46,7 +46,7 @@ test("theme accepts the three modes, rejects anything else", () => {
   expect(mergeSettings({ theme: "gray" }).theme).toBe("gray");
   expect(mergeSettings({ theme: "dark" }).theme).toBe("dark");
   expect(mergeSettings({ theme: "neon" }).theme).toBe(DEFAULTS.theme);
-  expect(mergeSettings({}).theme).toBe("dark");
+  expect(mergeSettings({}).theme).toBe("gray");
 });
 
 test("clampScale bounds and rounds", () => {

@@ -21,14 +21,14 @@ export interface Settings {
 }
 
 export const DEFAULTS: Settings = {
-  theme: "dark",
+  theme: "gray",
   fontScale: 1,
   showIndex: true,
   rowTint: true,
-  warningTint: "#d7ba7d",
-  warningAlpha: 0.08,
+  warningTint: "#ffdd94",
+  warningAlpha: 0.4,
   errorTint: "#f48771",
-  errorAlpha: 0.1,
+  errorAlpha: 0.4,
   openAt: "bottom",
   detailPct: 30,
   showSidebar: true,
