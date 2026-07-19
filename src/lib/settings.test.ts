@@ -30,6 +30,12 @@ test("scanFolders keeps strings only; scanDepth clamps 0-5", () => {
   expect(mergeSettings({ scanDepth: -1 }).scanDepth).toBe(0);
 });
 
+test("checkForUpdates defaults off and accepts a stored boolean", () => {
+  expect(mergeSettings({}).checkForUpdates).toBe(false);
+  expect(mergeSettings({ checkForUpdates: true }).checkForUpdates).toBe(true);
+  expect(mergeSettings({ checkForUpdates: "yes" }).checkForUpdates).toBe(false);
+});
+
 test("mergeSettings keeps valid stored values and clamps out-of-range", () => {
   const s = mergeSettings({ fontScale: 99, showIndex: false, openAt: "top", detailPct: 5, showSidebar: false });
   expect(s.fontScale).toBe(2);

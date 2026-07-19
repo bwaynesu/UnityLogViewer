@@ -18,6 +18,8 @@ export interface Settings {
   scanFolders: string[];
   /** Subfolder levels to descend when scanning (0 = top level only). */
   scanDepth: number;
+  /** Query GitHub for a newer release once at startup. Off = no network at all. */
+  checkForUpdates: boolean;
 }
 
 export const DEFAULTS: Settings = {
@@ -36,6 +38,7 @@ export const DEFAULTS: Settings = {
   ideTemplate: "",
   scanFolders: [],
   scanDepth: 2,
+  checkForUpdates: false,
 };
 
 export const clampScale = (n: number) => Math.min(2, Math.max(0.7, Math.round(n * 10) / 10));
@@ -66,6 +69,7 @@ export function mergeSettings(raw: unknown): Settings {
     s.scanFolders = r.scanFolders.filter((p): p is string => typeof p === "string").slice(0, 20);
   }
   if (typeof r.scanDepth === "number") s.scanDepth = Math.min(5, Math.max(0, Math.round(r.scanDepth)));
+  if (typeof r.checkForUpdates === "boolean") s.checkForUpdates = r.checkForUpdates;
   return s;
 }
 

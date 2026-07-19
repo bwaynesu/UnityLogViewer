@@ -190,6 +190,15 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
           <span className="hint">Windows only · per-user, no admin needed</span>
         </label>
         {assocNote && <div className="assoc-note">{assocNote}</div>}
+        <label className="setting">
+          <input
+            type="checkbox"
+            checked={s.checkForUpdates}
+            onChange={(e) => set({ checkForUpdates: e.target.checked })}
+          />
+          Check for updates on startup
+          <span className="hint">Contacts GitHub once at launch · off by default</span>
+        </label>
 
         <h3>IDE</h3>
         <label className="setting">

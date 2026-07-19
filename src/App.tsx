@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
@@ -26,6 +27,7 @@ import {
   type Stats,
 } from "./lib/api";
 import { buildFilter, CHUNK, missingChunks, type LevelToggles } from "./lib/filter";
+import { checkForUpdate } from "./lib/update";
 import {
   clampScale,
   loadRecent,
@@ -84,6 +86,7 @@ export default function App() {
     text: string;
     copyPath?: string;
     retryFrame?: StackFrame; // "Set project root…" retries this frame on success
+    link?: { label: string; url: string }; // e.g. "Download" for an update notice
   } | null>(null);
   const cacheRef = useRef<Map<number, Row[]>>(new Map());
   const [, bump] = useState(0);
@@ -96,6 +99,22 @@ export default function App() {
   const stats = tabs.find((t) => t.id === active)?.stats ?? null;
 
   useEffect(() => saveSettings(settings), [settings]);
+  // Opt-in update check: one GitHub call at startup (reads the setting as loaded
+  // at mount — toggling it on takes effect next launch). Silent on failure.
+  useEffect(() => {
+    if (!settings.checkForUpdates) return;
+    let cancelled = false;
+    getVersion()
+      .then(checkForUpdate)
+      .then((u) => {
+        if (!cancelled && u)
+          setNotice({ text: `Update available: v${u.version}`, link: { label: "Download", url: u.url } });
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", settings.theme);
   }, [settings.theme]);
@@ -472,9 +491,9 @@ export default function App() {
     }
   };
 
-  // auto-dismiss passive notices; actionable ones (retry button) stay until handled
+  // auto-dismiss passive notices; actionable ones (retry / update link) stay until handled
   useEffect(() => {
-    if (!notice || notice.retryFrame) return;
+    if (!notice || notice.retryFrame || notice.link) return;
     const t = setTimeout(() => setNotice(null), 6000);
     return () => clearTimeout(t);
   }, [notice]);
@@ -799,6 +818,11 @@ export default function App() {
           {notice.copyPath && (
             <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
               Copy path
+            </button>
+          )}
+          {notice.link && (
+            <button className="mini" onClick={() => openUrl(notice.link!.url)}>
+              {notice.link.label}
             </button>
           )}
           <button className="mini" onClick={() => setNotice(null)}>
