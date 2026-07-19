@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { logAssociation, setLogAssociation } from "./lib/api";
+import { isPortable, logAssociation, setLogAssociation } from "./lib/api";
 import { clampScale, DEFAULTS, type Settings } from "./lib/settings";
 
 const REPO_URL = "https://github.com/bwaynesu/UnityLogViewer";
@@ -24,6 +24,8 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
   const [assoc, setAssoc] = useState<boolean | null>(null);
   const [assocNote, setAssocNote] = useState<string | null>(null);
   const [version, setVersion] = useState("");
+  // Auto-update install only applies to installed builds; portable disables it.
+  const [portable, setPortable] = useState(false);
   // Font-size slider shows this while dragging; committed to settings on release so
   // the modal doesn't reflow (and slide out from under the cursor) mid-drag.
   const [fsPreview, setFsPreview] = useState(s.fontScale);
@@ -31,6 +33,7 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
   useEffect(() => {
     logAssociation().then(setAssoc);
     getVersion().then(setVersion).catch(() => {});
+    isPortable().then(setPortable).catch(() => {});
   }, []);
   const toggleAssoc = (enable: boolean) => {
     setAssocNote(null);
@@ -199,12 +202,17 @@ export default function SettingsModal({ settings: s, onChange, onClose }: Props)
         {assocNote && <div className="assoc-note">{assocNote}</div>}
         <label className="setting">
           Updates
-          <select value={s.updates} onChange={(e) => set({ updates: e.target.value as Settings["updates"] })}>
+          <select
+            value={portable && s.updates === "auto" ? "notify" : s.updates}
+            onChange={(e) => set({ updates: e.target.value as Settings["updates"] })}
+          >
             <option value="off">Off</option>
             <option value="notify">Notify me (download myself)</option>
-            <option value="auto">Download &amp; install automatically</option>
+            <option value="auto" disabled={portable}>
+              Download &amp; install automatically
+            </option>
           </select>
-          <span className="hint">Auto needs the installer build</span>
+          {portable && <span className="hint">Auto needs the installer build</span>}
         </label>
 
         <h3>IDE</h3>

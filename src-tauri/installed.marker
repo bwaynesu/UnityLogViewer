@@ -1,0 +1,20 @@
+Unity Log Viewer — installation marker
+=======================================
+
+This file is placed here by the Unity Log Viewer INSTALLER (the .msi or
+-setup.exe). It is NOT malware, a backdoor, or telemetry.
+
+What it does:
+  It lets the app tell it is an *installed* copy rather than the *portable*
+  single-exe build. Only installed copies enable the "Download & install
+  automatically" update option, because auto-update runs the installer and
+  a portable exe can't sensibly install over itself.
+
+What it contains:
+  Nothing but this note. It stores no data and runs no code.
+
+Safe to delete:
+  Yes. Deleting it just makes the app treat this copy as portable
+  (auto-update turns into a "notify me" link instead).
+
+Source code: https://github.com/bwaynesu/UnityLogViewer

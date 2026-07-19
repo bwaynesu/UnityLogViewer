@@ -118,6 +118,9 @@ export const logAssociation = () => invoke<boolean>("log_association");
 export const setLogAssociation = (enable: boolean) =>
   invoke<string>("set_log_association", { enable });
 
+/** True for the portable single-exe build (auto-update install isn't applicable). */
+export const isPortable = () => invoke<boolean>("is_portable");
+
 /** Top repeated errors over the whole file, for the summary panel. */
 export const topErrors = (fileId: number, limit: number) =>
   invoke<Row[]>("top_errors", { fileId, limit });

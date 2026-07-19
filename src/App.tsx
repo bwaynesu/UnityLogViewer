@@ -12,6 +12,7 @@ import {
   getEntries,
   getGroups,
   getOccurrences,
+  isPortable,
   nextError,
   openFile,
   openInIde,
@@ -115,6 +116,7 @@ export default function App() {
     };
     (async () => {
       if (settings.updates !== "auto") return notify();
+      if (await isPortable()) return notify(); // portable can't self-install — just notify
       try {
         const update = await checkUpdater();
         if (!update) return;

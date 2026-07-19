@@ -704,6 +704,19 @@ fn open_in_ide(
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+/// True when this is the portable single-exe build (not installed). Installed
+/// builds bundle `installed.marker` (see bundle.resources); the portable exe is
+/// shipped as the lone binary, so the marker is absent. Path/installer agnostic:
+/// works for NSIS/MSI and any (even custom) install directory.
+#[tauri::command]
+fn is_portable(app: tauri::AppHandle) -> bool {
+    use tauri::Manager;
+    app.path()
+        .resolve("installed.marker", tauri::path::BaseDirectory::Resource)
+        .map(|p| !p.exists())
+        .unwrap_or(true) // can't resolve → assume portable (hides auto-update)
+}
+
 pub fn run() {
     // Warm the IDE-locator caches off the UI path: the Unity-prefs reg query is
     // ~1s, so priming it now keeps the first "open in IDE" click snappy. Also
@@ -746,6 +759,7 @@ pub fn run() {
             startup_paths,
             log_association,
             set_log_association,
+            is_portable,
             validate_root,
             resolve_path,
             open_in_ide
