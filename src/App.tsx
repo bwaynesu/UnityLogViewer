@@ -101,10 +101,10 @@ export default function App() {
   const stats = tabs.find((t) => t.id === active)?.stats ?? null;
 
   useEffect(() => saveSettings(settings), [settings]);
-  // Opt-in update check at startup (setting read as loaded at mount; changing it
-  // takes effect next launch). "notify" = link to the download page; "auto" =
-  // download + install via the Tauri updater, then offer to restart. Both silent
-  // on failure — auto falls back to the notify link if the updater can't run.
+  // Opt-in update check — runs at startup and whenever the mode changes (so
+  // switching it on checks immediately instead of waiting for a relaunch).
+  // "notify" = link to the download page; "auto" = download + install via the
+  // Tauri updater, then offer to restart; auto falls back to notify on failure.
   useEffect(() => {
     if (settings.updates === "off") return;
     let cancelled = false;
@@ -132,8 +132,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [settings.updates]);
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", settings.theme);
   }, [settings.theme]);
