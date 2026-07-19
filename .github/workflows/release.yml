@@ -51,11 +51,21 @@ jobs:
 
       # The bundler only uploads installers; also publish the raw self-contained
       # exe as a portable download (needs WebView2, which ships with Win 10/11).
+      # Upload it under two names:
+      #   - versioned: makes an archived copy self-identifying
+      #   - version-less: a stable filename + URL
+      #     (…/releases/latest/download/UnityLogViewer_x64_portable.exe) so
+      #     portable users can overwrite in place, keeping the exe path — and
+      #     thus their .log file association — unchanged across updates.
       - name: Add portable exe to the release
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ver="${GITHUB_REF_NAME#v}"
-          cp "src-tauri/target/release/UnityLogViewer.exe" "UnityLogViewer_${ver}_x64_portable.exe"
-          gh release upload "$GITHUB_REF_NAME" "UnityLogViewer_${ver}_x64_portable.exe" --clobber
+          src="src-tauri/target/release/UnityLogViewer.exe"
+          cp "$src" "UnityLogViewer_${ver}_x64_portable.exe"
+          cp "$src" "UnityLogViewer_x64_portable.exe"
+          gh release upload "$GITHUB_REF_NAME" \
+            "UnityLogViewer_${ver}_x64_portable.exe" \
+            "UnityLogViewer_x64_portable.exe" --clobber
