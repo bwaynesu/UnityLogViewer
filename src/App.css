@@ -390,7 +390,7 @@ textarea {
   /* label column sizes to the longest label — fixed widths overlapped in ru/es */
   display: grid;
   grid-template-columns: max-content 1fr;
-  column-gap: 6px;
+  column-gap: 1em; /* em: scales with font size like the old label column did */
   row-gap: 2px;
 }
 
