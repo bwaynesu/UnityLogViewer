@@ -101,10 +101,17 @@ export default function App() {
     action?: { label: string; run: () => void }; // e.g. Download (open page) / Restart
   } | null>(null);
   const cacheRef = useRef<Map<number, Row[]>>(new Map());
-  const [, bump] = useState(0);
+  const [renderTick, bump] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  const pendingScrollRef = useRef<"bottom" | "top" | null>(null);
+  // "bottom"/"top" = where to land after opening a file; number = scrollTop to
+  // restore when switching back to a tab
+  const pendingScrollRef = useRef<"bottom" | "top" | number | null>(null);
+  // per-tab scroll offset + selection, restored on switch back.
+  // ponytail: view state (filter/collapse) is shared across tabs, so a saved
+  // index can go stale if the filter changed meanwhile — per-tab view state if
+  // that ever bites.
+  const tabViewRef = useRef<Map<number, { scrollTop: number; selected: Selection }>>(new Map());
   const pendingJumpRef = useRef<number | null>(null); // entry id to select after view change
   const emptyIdRef = useRef(-1); // frontend-only ids for empty tabs (Rust ids are positive)
 
@@ -225,13 +232,18 @@ export default function App() {
 
   const switchTab = (id: number) => {
     if (id === active) return;
+    if (active !== null)
+      tabViewRef.current.set(active, { scrollTop: listRef.current?.scrollTop ?? 0, selected });
+    const saved = tabViewRef.current.get(id);
     cacheRef.current = new Map();
-    setSelected(null);
+    setSelected(saved?.selected ?? null);
+    pendingScrollRef.current = saved?.scrollTop ?? 0;
     setActive(id);
   };
 
   const closeTab = (id: number) => {
     if (id > 0) closeFile(id); // empty tabs have no Rust-side file (also stops its tail poller)
+    tabViewRef.current.delete(id);
     setBookmarks(({ [id]: _, ...rest }) => rest);
     setTailing(({ [id]: _t, ...rest }) => rest);
     setTabs((ts) => {
@@ -239,8 +251,10 @@ export default function App() {
       const next = ts.filter((t) => t.id !== id);
       if (id === active) {
         const neighbor = next[idx] ?? next[idx - 1];
+        const saved = neighbor ? tabViewRef.current.get(neighbor.id) : undefined;
         cacheRef.current = new Map();
-        setSelected(null);
+        setSelected(saved?.selected ?? null);
+        pendingScrollRef.current = saved?.scrollTop ?? 0;
         setActive(neighbor ? neighbor.id : null);
       }
       return next;
@@ -313,7 +327,11 @@ export default function App() {
         setTotal(p.total);
         bump((n) => n + 1);
 
-        const jumpId = pendingJumpRef.current ?? selected?.row.entry.id ?? null;
+        // restoring a tab? keep its exact scroll offset instead of re-anchoring
+        const jumpId =
+          pendingScrollRef.current !== null
+            ? null
+            : pendingJumpRef.current ?? selected?.row.entry.id ?? null;
         pendingJumpRef.current = null;
         if (jumpId !== null) {
           positionOf(active, filter, jumpId, collapse).then((pos) => {
@@ -351,14 +369,16 @@ export default function App() {
   });
   useEffect(() => virtualizer.measure(), [rowH, virtualizer]);
 
-  // initial scroll position after a file opens
+  // initial scroll position after a file opens / restored offset on tab switch.
+  // deps include renderTick so it also fires when the new tab's total happens to
+  // equal the old one's — by then the virtualizer count (and list height) is current.
   useEffect(() => {
     const want = pendingScrollRef.current;
-    if (want && total > 0) {
-      pendingScrollRef.current = null;
-      virtualizer.scrollToIndex(want === "bottom" ? total - 1 : 0, { align: "auto" });
-    }
-  }, [total, virtualizer]);
+    if (want === null || total === 0) return;
+    pendingScrollRef.current = null;
+    if (typeof want === "number") listRef.current?.scrollTo({ top: want });
+    else virtualizer.scrollToIndex(want === "bottom" ? total - 1 : 0, { align: "auto" });
+  }, [total, renderTick, virtualizer]);
 
   // fetch chunks covering the visible window
   const vItems = virtualizer.getVirtualItems();
@@ -808,7 +828,7 @@ export default function App() {
           title={t("liveTailTitle")}
           onClick={toggleTail}
         >
-          ⏵ {t("liveTail")}
+          ⏵{t("liveTail")}
         </button>
         {toggleBtn("log", "ⓘ", stats.log)}
         {toggleBtn("warning", "⚠", stats.warning)}
