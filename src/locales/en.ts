@@ -34,7 +34,8 @@ export const en = {
   logFilesFilter: "Log files",
   // notices
   updateAvailable: "Update available: v{version}",
-  download: "Download",
+  updateNow: "Update now",
+  downloadManually: "Download manually",
   downloadingUpdate: "Downloading update v{version}…",
   updatedTo: "Updated to v{version}",
   restartNow: "Restart now",

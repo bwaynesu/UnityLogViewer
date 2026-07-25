@@ -98,6 +98,7 @@ export default function App() {
     text: string;
     copyPath?: string;
     retryFrame?: StackFrame; // "Set project root…" retries this frame on success
+    autoAction?: { label: string; run: () => void }; // one-click self-install (installer builds)
     action?: { label: string; run: () => void }; // e.g. Download (open page) / Restart
   } | null>(null);
   const cacheRef = useRef<Map<number, Row[]>>(new Map());
@@ -121,37 +122,47 @@ export default function App() {
   setLocale(settings.language);
 
   useEffect(() => saveSettings(settings), [settings]);
+  // Download + install via the Tauri updater, then offer to restart. Shared by
+  // auto-update at startup and the "Update now" button in notify mode. Portable
+  // builds never reach here — every caller gates on !isPortable().
+  const installUpdate = async (isCancelled: () => boolean = () => false) => {
+    const update = await checkUpdater();
+    if (!update || isCancelled()) return;
+    setNotice({ text: t("downloadingUpdate", { version: update.version }) });
+    await update.downloadAndInstall();
+    if (!isCancelled())
+      setNotice({
+        text: t("updatedTo", { version: update.version }),
+        action: { label: t("restartNow"), run: () => relaunch() },
+      });
+  };
   // Opt-in update check — runs at startup and whenever the mode changes (so
   // switching it on checks immediately instead of waiting for a relaunch).
-  // "notify" = link to the download page; "auto" = download + install via the
-  // Tauri updater, then offer to restart; auto falls back to notify on failure.
+  // "notify" = manual download link + (installer builds) one-click self-install;
+  // "auto" = install immediately, then offer to restart; falls back to notify.
   useEffect(() => {
     if (settings.updates === "off") return;
     let cancelled = false;
     const notify = async () => {
       const u = await checkForUpdate(await getVersion());
-      if (!cancelled && u)
-        setNotice({
-          text: t("updateAvailable", { version: u.version }),
-          action: { label: t("download"), run: () => openUrl(u.url) },
-        });
+      if (cancelled || !u) return;
+      const installer = !(await isPortable()); // only installer builds can self-install
+      if (cancelled) return;
+      setNotice({
+        text: t("updateAvailable", { version: u.version }),
+        // installer builds get one-click auto-install before the manual link;
+        // on failure it degrades to opening the download page.
+        autoAction: installer
+          ? { label: t("updateNow"), run: () => installUpdate().catch(() => openUrl(u.url)) }
+          : undefined,
+        action: { label: t("downloadManually"), run: () => openUrl(u.url) },
+      });
     };
     (async () => {
       if (settings.updates !== "auto") return notify();
       if (await isPortable()) return notify(); // portable can't self-install — just notify
       try {
-        const update = await checkUpdater();
-        if (!update) return;
-        if (cancelled) return;
-        setNotice({ text: t("downloadingUpdate", { version: update.version }) });
-        await update.downloadAndInstall();
-        // ponytail: on a portable exe this runs the installer (installs the app);
-        // gate on install location if that turns out to matter.
-        if (!cancelled)
-          setNotice({
-            text: t("updatedTo", { version: update.version }),
-            action: { label: t("restartNow"), run: () => relaunch() },
-          });
+        await installUpdate(() => cancelled);
       } catch {
         await notify(); // updater unavailable/blocked — fall back to the manual link
       }
@@ -689,6 +700,11 @@ export default function App() {
       {notice.copyPath && (
         <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
           {t("copyPath")}
+        </button>
+      )}
+      {notice.autoAction && (
+        <button className="mini" onClick={() => notice.autoAction!.run()}>
+          {notice.autoAction.label}
         </button>
       )}
       {notice.action && (
