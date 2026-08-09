@@ -288,6 +288,11 @@ textarea {
   min-width: 120px;
 }
 
+/* clear button sits inside the field's right edge (Chromium/WebView2 native) */
+.search::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
 .search:focus {
   outline: 1px solid var(--accent);
 }

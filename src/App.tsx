@@ -806,6 +806,7 @@ export default function App() {
       <div className="toolbar">
         <input
           ref={searchRef}
+          type="search" /* ponytail: native clear (X) button; hand-rolled button only if it must be styled */
           className={`search ${filterError ? "bad" : ""}`}
           placeholder={t("searchPlaceholder")}
           title={filterError ?? t("searchTitle")}
