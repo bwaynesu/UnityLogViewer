@@ -13,6 +13,7 @@
   --border: #3c3c3c;
   --hover: #3e3e42;
   --sel: #094771;
+  --hl: #665200;
   --notice-bg: #4d3800;
 }
 
@@ -29,6 +30,7 @@
   --border: #5a5d61;
   --hover: #55585c;
   --sel: #2c5d86;
+  --hl: #7a6427;
   --notice-bg: #5c4a1e;
 }
 
@@ -45,6 +47,7 @@
   --border: #cfcfcf;
   --hover: #e0e0e0;
   --sel: #cde3f7;
+  --hl: #ffe58f;
   --notice-bg: #fbeecb;
 }
 
@@ -286,6 +289,13 @@ textarea {
   font-size: inherit;
   flex: 1; /* fills the toolbar's left side */
   min-width: 120px;
+}
+
+/* search hits, painted wherever entry text is rendered */
+mark {
+  background: var(--hl);
+  color: inherit;
+  border-radius: 2px;
 }
 
 /* clear button sits inside the field's right edge (Chromium/WebView2 native) */

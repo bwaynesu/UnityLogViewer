@@ -20,6 +20,7 @@ export const en = {
   searchTitle: "Ctrl+F · plain terms AND-match, -term excludes",
   matchCase: "Match case",
   regex: "Regular expression",
+  filterHitsTitle: "Show only matching entries (off = highlight only)",
   collapse: "Collapse",
   collapseTitle: "Collapse identical entries",
   sidebarToggle: "System info & error summary",

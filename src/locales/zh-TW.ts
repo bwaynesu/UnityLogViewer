@@ -10,6 +10,7 @@ export const zhTW: Messages = {
   searchTitle: "Ctrl+F · 多個詞取 AND;-詞 排除",
   matchCase: "區分大小寫",
   regex: "正規表示式",
+  filterHitsTitle: "只顯示符合的條目(關閉 = 只高亮)",
   collapse: "摺疊",
   collapseTitle: "摺疊相同條目",
   sidebarToggle: "系統資訊與錯誤摘要",

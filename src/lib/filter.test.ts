@@ -1,5 +1,33 @@
 import { expect, test } from "vitest";
-import { CHUNK, levelsParam, missingChunks, parseQuery } from "./filter";
+import {
+  CHUNK,
+  highlightPatterns,
+  levelsParam,
+  missingChunks,
+  parseQuery,
+  splitMatches,
+} from "./filter";
+
+/** Mirrors how App renders: empty split = paint nothing, show the raw text. */
+const paint = (text: string, query: string, regex = false, caseSensitive = false) => {
+  const segs = splitMatches(text, highlightPatterns(query, regex, caseSensitive) ?? []);
+  return segs.length === 0 ? text : segs.map((s) => (s.hit ? `[${s.text}]` : s.text)).join("");
+};
+
+test("highlight marks every hit, merges overlaps, ignores excludes", () => {
+  expect(paint("null ref, null again", "null -Curl")).toBe("[null] ref, [null] again");
+  expect(paint("abcd", "abc bcd")).toBe("[abcd]"); // overlapping terms merge
+  expect(paint("Null null", "null", false, true)).toBe("Null [null]");
+  expect(paint("a(b)", "a(b)")).toBe("[a(b)]"); // plain mode escapes metacharacters
+  expect(paint("aXa", "a*", true)).toBe("[a]X[a]"); // empty matches don't hang
+});
+
+test("highlight is empty when there is nothing to paint or the regex is invalid", () => {
+  expect(splitMatches("anything", [])).toEqual([]);
+  expect(paint("no hit here", "missing")).toBe("no hit here");
+  expect(highlightPatterns("(", true, false)).toBeNull();
+  expect(highlightPatterns("", false, false)).toEqual([]);
+});
 
 test("parseQuery splits includes and -excludes", () => {
   expect(parseQuery("null -Curl  ref", false)).toEqual({

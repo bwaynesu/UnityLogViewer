@@ -32,7 +32,14 @@ import {
   type Stats,
 } from "./lib/api";
 import { toggleBookmark, type Bookmark } from "./lib/bookmarks";
-import { buildFilter, CHUNK, missingChunks, type LevelToggles } from "./lib/filter";
+import {
+  buildFilter,
+  CHUNK,
+  highlightPatterns,
+  missingChunks,
+  splitMatches,
+  type LevelToggles,
+} from "./lib/filter";
 import { setLocale, t } from "./lib/i18n";
 import { checkForUpdate } from "./lib/update";
 import {
@@ -77,6 +84,8 @@ export default function App() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [useRegex, setUseRegex] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
+  // off = the query only highlights; the list keeps showing every entry
+  const [filterHits, setFilterHits] = useState(true);
   const [collapse, setCollapse] = useState(false);
   const [total, setTotal] = useState(0);
   const [selected, setSelected] = useState<Selection>(null);
@@ -181,10 +190,22 @@ export default function App() {
     return () => clearTimeout(t);
   }, [query]);
 
+  // Highlight-only mode = the query simply never reaches the filter.
   const filter: FilterParams = useMemo(
-    () => buildFilter(toggles, debouncedQuery, useRegex, caseSensitive),
-    [toggles, debouncedQuery, useRegex, caseSensitive],
+    () => buildFilter(toggles, filterHits ? debouncedQuery : "", useRegex, caseSensitive),
+    [toggles, debouncedQuery, filterHits, useRegex, caseSensitive],
   );
+  const hlPatterns = useMemo(
+    () => highlightPatterns(debouncedQuery, useRegex, caseSensitive),
+    [debouncedQuery, useRegex, caseSensitive],
+  );
+  /** Paint search hits inside a run of text (list row, message, stack frame). */
+  const hl = (text: string) => {
+    const segs = splitMatches(text, hlPatterns ?? []);
+    return segs.length === 0
+      ? text
+      : segs.map((s, i) => (s.hit ? <mark key={i}>{s.text}</mark> : s.text));
+  };
   const fetchPage = useCallback(
     (f: FilterParams, offset: number, limit: number) =>
       (collapse ? getGroups : getEntries)(active!, f, offset, limit),
@@ -807,7 +828,7 @@ export default function App() {
         <input
           ref={searchRef}
           type="search" /* ponytail: native clear (X) button; hand-rolled button only if it must be styled */
-          className={`search ${filterError ? "bad" : ""}`}
+          className={`search ${filterError || hlPatterns === null ? "bad" : ""}`}
           placeholder={t("searchPlaceholder")}
           title={filterError ?? t("searchTitle")}
           value={query}
@@ -832,6 +853,13 @@ export default function App() {
           onClick={() => setUseRegex((v) => !v)}
         >
           .*
+        </button>
+        <button
+          className={`mini ${filterHits ? "on" : ""}`}
+          title={t("filterHitsTitle")}
+          onClick={() => setFilterHits((v) => !v)}
+        >
+          ▽
         </button>
         <button
           className={`mini ${collapse ? "on" : ""}`}
@@ -888,7 +916,7 @@ export default function App() {
                       )}
                       <span className={`icon ${e.level}`}>{LEVEL_ICON[e.level]}</span>
                       {markIds.has(e.id) && <span className="bm">★</span>}
-                      <span className="msg">{e.message.split("\n")[0]}</span>
+                      <span className="msg">{hl(e.message.split("\n")[0])}</span>
                       {row.count !== null && row.count > 1 && (
                         <span className="badge">×{row.count.toLocaleString()}</span>
                       )}
@@ -968,7 +996,7 @@ export default function App() {
               )}
             </div>
           )}
-          <pre className="detail-msg">{sel.entry.message}</pre>
+          <pre className="detail-msg">{hl(sel.entry.message)}</pre>
           {sel.entry.frames.length > 0 && (
             <div className="frames">
               {sel.entry.frames.map((f, i) => (
@@ -978,7 +1006,7 @@ export default function App() {
                   title={f.file && f.line !== null ? t("openInIde") : undefined}
                   onClick={() => openFrame(f)}
                 >
-                  {f.raw}
+                  {hl(f.raw)}
                 </div>
               ))}
             </div>

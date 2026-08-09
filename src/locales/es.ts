@@ -10,6 +10,7 @@ export const es: Messages = {
   searchTitle: "Ctrl+F · los términos se combinan con Y, -término excluye",
   matchCase: "Distinguir mayúsculas",
   regex: "Expresión regular",
+  filterHitsTitle: "Mostrar solo coincidencias (desactivado = solo resaltar)",
   collapse: "Agrupar",
   collapseTitle: "Agrupar entradas idénticas",
   sidebarToggle: "Información del sistema y resumen de errores",

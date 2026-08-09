@@ -10,6 +10,7 @@ export const zhCN: Messages = {
   searchTitle: "Ctrl+F · 多个词取 AND;-词 排除",
   matchCase: "区分大小写",
   regex: "正则表达式",
+  filterHitsTitle: "只显示匹配的条目(关闭 = 仅高亮)",
   collapse: "折叠",
   collapseTitle: "折叠相同条目",
   sidebarToggle: "系统信息与错误摘要",

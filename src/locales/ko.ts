@@ -10,6 +10,7 @@ export const ko: Messages = {
   searchTitle: "Ctrl+F · 여러 단어는 AND 검색, -단어 로 제외",
   matchCase: "대소문자 구분",
   regex: "정규식",
+  filterHitsTitle: "일치하는 항목만 표시 (끄면 강조만)",
   collapse: "접기",
   collapseTitle: "동일한 항목 접기",
   sidebarToggle: "시스템 정보 및 오류 요약",

@@ -10,6 +10,7 @@ export const ru: Messages = {
   searchTitle: "Ctrl+F · слова объединяются по И, -слово исключает",
   matchCase: "Учитывать регистр",
   regex: "Регулярное выражение",
+  filterHitsTitle: "Показывать только совпадения (выкл. — только подсветка)",
   collapse: "Свернуть",
   collapseTitle: "Свернуть одинаковые записи",
   sidebarToggle: "Сведения о системе и сводка ошибок",

@@ -10,6 +10,7 @@ export const ja: Messages = {
   searchTitle: "Ctrl+F · 複数語は AND 検索、-語 で除外",
   matchCase: "大文字と小文字を区別",
   regex: "正規表現",
+  filterHitsTitle: "一致する項目のみ表示(オフ = ハイライトのみ)",
   collapse: "折りたたみ",
   collapseTitle: "同一エントリを折りたたむ",
   sidebarToggle: "システム情報とエラー概要",

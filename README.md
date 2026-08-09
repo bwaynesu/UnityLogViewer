@@ -39,7 +39,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 - Live tail: toggle **⏵Live** to follow a file the game is still writing. New entries parse incrementally, the list stays pinned to the bottom until you scroll up, and a rewritten log (game restart) reloads automatically.
 
 **Finding**
-- Search the message and stack frames together: space-separated terms are AND-matched, `-term` excludes, with case and regex toggles.
+- Search the message and stack frames together: space-separated terms are AND-matched, `-term` excludes, with case and regex toggles. Matches are highlighted, and the `▽` toggle turns filtering off so the query only highlights.
 - Jump between errors (F8 / Shift+F8) and filter by level (1 / 2 / 3); the selected entry stays put when filters change.
 - Bookmark entries (B or the ★ button) and jump back from the sidebar list; "Copy ref" copies a `file #entry` text reference for sharing.
 - Flags native crash dumps (an `OUTPUTTING STACK TRACE` section) with a link to jump to it.
