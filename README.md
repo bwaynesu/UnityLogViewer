@@ -42,6 +42,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 - Search the message and stack frames together: space-separated terms are AND-matched, `-term` excludes, with case and regex toggles. Matches are highlighted, and the `▽` toggle turns filtering off so the query only highlights.
 - Jump between errors (F8 / Shift+F8) and filter by level (1 / 2 / 3); the selected entry stays put when filters change.
 - Bookmark entries (B or the ★ button) and jump back from the sidebar list; "Copy ref" copies a `file #entry` text reference for sharing.
+- The scrollbar doubles as a map of the whole file: warning density, errors and bookmarks are marked along the track, and clicking a marker jumps to it. Right-click the scrollbar to choose which kinds it shows.
 - Flags native crash dumps (an `OUTPUTTING STACK TRACE` section) with a link to jump to it.
 
 **IDE deep-linking**
@@ -57,7 +58,7 @@ This is the offline, local, open-source option: a fast native reader for a log f
 
 ## Performance
 
-Parsing runs in a native Rust core on a background thread, so the window stays responsive while a file loads. The list is virtualized and pages load on demand, so the frontend never holds the whole log in memory. Scrolling and filtering stay smooth on logs in the hundreds of megabytes.
+Parsing runs in a native Rust core on a background thread, so the window stays responsive while a file loads. The list is virtualized and pages load on demand, so the frontend never holds the whole log in memory. Scrolling and filtering stay smooth on multi-gigabyte logs, and every entry stays reachable however many there are: the list scrolls by row rather than by pixel, so it is not bounded by the browser engine's maximum element height (which strands anything past roughly a million rows).
 
 ## Privacy
 
