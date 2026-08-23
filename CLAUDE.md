@@ -86,6 +86,37 @@ Each of these exists because breaking it caused a regression. New code keeps the
 - **Never rename the executable or the product name.** The `.log` file association stores
   the executable's absolute path, and `heal_log_association()` repairs it at startup.
 
+## Writing (README and any user-facing doc)
+
+The two READMEs are one document in two languages: same sections, same order, same
+claims. Edit both, or neither.
+
+House voice, in both languages:
+
+- **No second person.** Not "your logs" / "folders you add" but "the logs" / "watch
+  folders added by hand"; 不用「你的日誌」「你自己加入」,用「日誌」「自行加入」.
+  The Windows dialog text ("Windows protected your PC") is quoted verbatim and exempt.
+- **No filler pronoun subjects.** Start with the verb, or name the thing: "Parses the raw
+  log into…", "This tool reads…" — not "It parses…". 中文用「此工具」或直接省略主語,
+  不用「它」「這個工具」.
+- **Cut every word that carries nothing**: "Unity's immediate-mode GUI" → "Unity
+  immediate-mode GUI"; 「不同的定位」→「不同定位」,「一個快速的原生檢視器」→
+  「快速的原生檢視器」.
+- **Formal register over conversational.** 「也不需付費」→「亦不需付費」,「沒有遙測」→
+  「無遙測」,「只讀取」→「僅讀取」,「不是 X」→「而非 X」.
+- **Outcome first, mechanism never.** The README says what the user gets; it does not
+  explain how it is implemented, which bug it fixed, or which engine limit was worked
+  around. That belongs in comments and commit messages.
+- **Result before cause before instruction.** The SmartScreen note reads: what happens →
+  this is expected, and why → what to click.
+- **No specifics that expire.** "The UI is localized" rather than a list of seven language
+  names that goes stale the moment one is added.
+- Prefer a noun phrase to a relative clause: "a copy-summary button for pasting into bug
+  reports", not "a button to copy a summary so you can paste it into a bug report".
+
+Development notes and code comments are a different register — they explain mechanism and
+history, which is exactly what the README leaves out.
+
 ## Commits
 
 English, Conventional Commits: `type: description` or `type(scope): description`.
