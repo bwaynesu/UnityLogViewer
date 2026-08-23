@@ -23,6 +23,7 @@ CI runs the same checks on Ubuntu and Windows for every push and pull request.
 | Path | Owns |
 | --- | --- |
 | `src/App.tsx` | State and the cross-cutting effects — the glue layer, and where the bugs come from |
+| `src/view/*.tsx` | Presentational components (home page, toolbar, list, scrollbar, detail panel, notice bar). Explicit props, no state, no effects — each with its own `.css` next to it |
 | `src/lib/scroll.ts` | Row-unit scroll and marker-map geometry (pure, tested) |
 | `src/lib/filter.ts` | Query parsing, highlight ranges, page-chunk math (pure, tested) |
 | `src/lib/settings.ts` | Settings shape, defaults, and the merge/clamp of stored values |
@@ -35,6 +36,8 @@ CI runs the same checks on Ubuntu and Windows for every push and pull request.
 
 ## Where to change what
 
+- how something looks → the matching `view/*.tsx` and its `.css`; `App.css` holds only
+  theme variables, the reset, and genuinely shared classes
 - scrolling, scrollbar, markers → `lib/scroll.ts` plus the scroll section of `App.tsx`
 - search and filter behaviour → `lib/filter.ts`, and `query.rs` for the Rust half
 - a new setting → `Settings`, `DEFAULTS` and `mergeSettings` in `lib/settings.ts`, then
@@ -74,6 +77,10 @@ Each of these exists because breaking it caused a regression. New code keeps the
   highlighting there.
 - **Both render branches.** `App` shows a home page when no file is open and the viewer
   otherwise; global UI such as notices must render in both.
+- **`view/` components stay presentational.** They take props and render; state and
+  effects live in `App.tsx`. An effect may only move out with the state it exclusively
+  owns — anything reading two or more of filter, collapse, active file, selection,
+  total or scroll position stays where it is.
 - **Windows: no flashing consoles.** Spawned processes use `hidden_output()` or
   `CREATE_NO_WINDOW`.
 - **Never rename the executable or the product name.** The `.log` file association stores

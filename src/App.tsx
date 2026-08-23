@@ -1,3 +1,6 @@
+// globals (theme variables, reset, shared bits) load first so component styles
+// that follow can override them
+import "./App.css";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
@@ -69,23 +72,17 @@ import {
 } from "./lib/settings";
 import SettingsModal from "./SettingsModal";
 import Sidebar from "./Sidebar";
-import "./App.css";
-
-const LEVEL_ICON: Record<Row["entry"]["level"], string> = {
-  Log: "ⓘ",
-  Warning: "⚠",
-  Error: "⛔",
-  Assert: "⛔",
-  Exception: "⛔",
-};
+import { fileName } from "./view/common";
+import DetailPanel from "./view/DetailPanel";
+import HomePage from "./view/HomePage";
+import LogList from "./view/LogList";
+import MarkerScrollbar, { type MarkKinds } from "./view/MarkerScrollbar";
+import NoticeBar, { type Notice } from "./view/NoticeBar";
+import Toolbar from "./view/Toolbar";
 
 type Selection = { index: number; row: Row } | null;
 /** stats === null → browser-style empty "New Tab" showing the home page. */
 type Tab = { id: number; stats: Stats | null };
-
-const fileName = (p: string) => p.split(/[\\/]/).pop() ?? p;
-const fmtSize = (n: number) =>
-  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 
 export default function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -118,13 +115,7 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   // manual project root, session-cached only (cleared when the window closes)
   const [manualRoot, setManualRoot] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{
-    text: string;
-    copyPath?: string;
-    retryFrame?: StackFrame; // "Set project root…" retries this frame on success
-    autoAction?: { label: string; run: () => void }; // one-click self-install (installer builds)
-    action?: { label: string; run: () => void }; // e.g. Download (open page) / Restart
-  } | null>(null);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const cacheRef = useRef<Map<number, Row[]>>(new Map());
   const [, bump] = useState(0); // page cache lives in a ref; bump re-renders when it fills
   const listRef = useRef<HTMLDivElement>(null);
@@ -406,7 +397,11 @@ export default function App() {
   // the other view toggles (collapse / case / ▽), so it stays out of Settings.
   // Warnings default off: they are the noisy kind (six figures in a long session),
   // and the map is there to find the rare thing.
-  const [markKinds, setMarkKinds] = useState({ warning: false, error: true, bookmark: true });
+  const [markKinds, setMarkKinds] = useState<MarkKinds>({
+    warning: false,
+    error: true,
+    bookmark: true,
+  });
   const [markMenu, setMarkMenu] = useState<{ x: number; y: number } | null>(null);
   const bookmarkIds = useMemo(
     () => (active !== null ? (bookmarks[active] ?? []).map((b) => b.id) : []),
@@ -852,16 +847,6 @@ export default function App() {
     return undefined;
   };
 
-  const toggleBtn = (key: keyof LevelToggles, icon: string, count: number) => (
-    <button
-      className={`lvl-btn ${key} ${toggles[key] ? "on" : ""}`}
-      onClick={() => setToggles((t) => ({ ...t, [key]: !t[key] }))}
-      title={`${t(key === "log" ? "lvlLog" : key === "warning" ? "lvlWarning" : "lvlError")} (${key === "log" ? "1" : key === "warning" ? "2" : "3"})`}
-    >
-      {icon} {count.toLocaleString()}
-    </button>
-  );
-
   const overlay = loading && (
     <div className="overlay">
       <div className="overlay-box">{t("parsing", { pct: progress })}</div>
@@ -903,32 +888,11 @@ export default function App() {
 
   // Shared across the home and viewer layouts so update/error notices show in both.
   const noticeBar = notice && (
-    <div className="notice">
-      <span className="msg">{notice.text}</span>
-      {notice.retryFrame && (
-        <button className="mini" onClick={() => pickRootAndRetry(notice.retryFrame!)}>
-          {t("setProjectRoot")}
-        </button>
-      )}
-      {notice.copyPath && (
-        <button className="mini" onClick={() => navigator.clipboard.writeText(notice.copyPath!)}>
-          {t("copyPath")}
-        </button>
-      )}
-      {notice.autoAction && (
-        <button className="mini" onClick={() => notice.autoAction!.run()}>
-          {notice.autoAction.label}
-        </button>
-      )}
-      {notice.action && (
-        <button className="mini" onClick={() => notice.action!.run()}>
-          {notice.action.label}
-        </button>
-      )}
-      <button className="mini" onClick={() => setNotice(null)}>
-        ✕
-      </button>
-    </div>
+    <NoticeBar notice={notice} onSetRoot={pickRootAndRetry} onClose={() => setNotice(null)} />
+  );
+
+  const settingsModal = showSettings && (
+    <SettingsModal settings={settings} onChange={setSettings} onClose={() => setShowSettings(false)} />
   );
 
   if (!stats) {
@@ -936,228 +900,76 @@ export default function App() {
       <main className="viewer" style={fontVars}>
         {overlay}
         {tabbar}
-        <div className="home">
-          {/* margin:auto centering (not justify-content) so tall content scrolls from the top */}
-          <div className="home-inner">
-          <h1>
-            Unity Log Viewer{" "}
-            <a
-              className="author-link"
-              onClick={() => openUrl("https://bwaynesu.github.io/portfolio/")}
-              title="bwaynesu's portfolio"
-            >
-              by bwaynesu
-            </a>
-          </h1>
-          <p className="drop-hint" onClick={pickFile}>
-            {t("dropHint")}
-          </p>
-          {error && <p className="error-text">{error}</p>}
-          <div className="empty-cols">
-            {recent.length > 0 && (
-              <div className="empty-col">
-                <h3>{t("recent")}</h3>
-                {recent.map((p) => (
-                  <button key={p} className="empty-item" title={p} onClick={() => load(p)}>
-                    {fileName(p)}
-                    <span className="hint">{p}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {localLogs.length > 0 && (
-              <div className="empty-col">
-                <h3>{t("localLogs")}</h3>
-                {localLogs.slice(0, 12).map((l) => (
-                  <button key={l.path} className="empty-item" title={l.path} onClick={() => load(l.path)}>
-                    {fileName(l.path)}
-                    <span className="hint">
-                      {l.game} · {fmtSize(l.size)} · {new Date(l.modifiedMs).toLocaleDateString()}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {watched.length > 0 && (
-              <div className="empty-col">
-                <h3>{t("watchedFolders")}</h3>
-                {watched.slice(0, 12).map((l) => (
-                  <button key={l.path} className="empty-item" title={l.path} onClick={() => load(l.path)}>
-                    {fileName(l.path)}
-                    <span className="hint">
-                      {l.game} · {fmtSize(l.size)} · {new Date(l.modifiedMs).toLocaleDateString()}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          </div>
-        </div>
+        <HomePage
+          recent={recent}
+          localLogs={localLogs}
+          watched={watched}
+          error={error}
+          onPickFile={pickFile}
+          onOpen={load}
+        />
         <button className="home-settings" title={t("settings")} onClick={() => setShowSettings(true)}>
           ⚙
         </button>
         {noticeBar}
-        {showSettings && (
-          <SettingsModal
-            settings={settings}
-            onChange={setSettings}
-            onClose={() => setShowSettings(false)}
-          />
-        )}
+        {settingsModal}
       </main>
     );
   }
-
-  const idxWidth = `${Math.max(3, String(stats.total).length)}ch`;
-  const sel = selected?.row;
 
   return (
     <main className="viewer" style={fontVars}>
       {overlay}
       {tabbar}
-      <div className="toolbar">
-        <input
-          ref={searchRef}
-          type="search" /* ponytail: native clear (X) button; hand-rolled button only if it must be styled */
-          className={`search ${filterError || hlPatterns === null ? "bad" : ""}`}
-          placeholder={t("searchPlaceholder")}
-          title={filterError ?? t("searchTitle")}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              setQuery("");
-              (e.target as HTMLInputElement).blur();
-            }
-          }}
-        />
-        <button
-          className={`mini ${caseSensitive ? "on" : ""}`}
-          title={t("matchCase")}
-          onClick={() => setCaseSensitive((v) => !v)}
-        >
-          Aa
-        </button>
-        <button
-          className={`mini ${useRegex ? "on" : ""}`}
-          title={t("regex")}
-          onClick={() => setUseRegex((v) => !v)}
-        >
-          .*
-        </button>
-        <button
-          className={`mini ${filterHits ? "on" : ""}`}
-          title={t("filterHitsTitle")}
-          onClick={() => setFilterHits((v) => !v)}
-        >
-          ▽
-        </button>
-        <button
-          className={`mini ${collapse ? "on" : ""}`}
-          title={t("collapseTitle")}
-          onClick={() => setCollapse((v) => !v)}
-        >
-          {t("collapse")}
-        </button>
-        <button
-          className={`mini ${active !== null && tailing[active] ? "on" : ""}`}
-          title={t("liveTailTitle")}
-          onClick={toggleTail}
-        >
-          ⏵{t("liveTail")}
-        </button>
-        {toggleBtn("log", "ⓘ", stats.log)}
-        {toggleBtn("warning", "⚠", stats.warning)}
-        {toggleBtn("error", "⛔", stats.error + stats.assert + stats.exception)}
-        <button
-          className={`mini ${settings.showSidebar ? "on" : ""}`}
-          title={t("sidebarToggle")}
-          onClick={() => setSettings((s) => ({ ...s, showSidebar: !s.showSidebar }))}
-        >
-          ☰
-        </button>
-        <button onClick={() => setShowSettings(true)} title={t("settings")}>
-          ⚙
-        </button>
-      </div>
+      <Toolbar
+        searchRef={searchRef}
+        query={query}
+        onQuery={setQuery}
+        searchError={filterError ?? (hlPatterns === null ? t("searchTitle") : null)}
+        caseSensitive={caseSensitive}
+        useRegex={useRegex}
+        filterHits={filterHits}
+        collapse={collapse}
+        tailing={active !== null && !!tailing[active]}
+        sidebar={settings.showSidebar}
+        stats={stats}
+        toggles={toggles}
+        onToggle={(key) => setToggles((v) => ({ ...v, [key]: !v[key] }))}
+        onCaseSensitive={() => setCaseSensitive((v) => !v)}
+        onUseRegex={() => setUseRegex((v) => !v)}
+        onFilterHits={() => setFilterHits((v) => !v)}
+        onCollapse={() => setCollapse((v) => !v)}
+        onTail={toggleTail}
+        onSidebar={() => setSettings((s) => ({ ...s, showSidebar: !s.showSidebar }))}
+        onSettings={() => setShowSettings(true)}
+      />
 
       <div className="body-row">
-        {/* rows sit at an offset from the current scroll row — no full-height spacer,
-            so file length is not capped by the engine's maximum element height */}
-        <div className="list" ref={listRef}>
-          {Array.from({ length: vEndEx - vStart }, (_, k) => {
-            const index = vStart + k;
-            const row = rowAt(index);
-            const e = row?.entry;
-            const isSel = selected !== null && selected.index === index;
-            return (
-                <div
-                  key={index}
-                  className={`row ${isSel ? "selected" : ""}`}
-                  style={{
-                    transform: `translateY(${(index - scrollRow) * rowH}px)`,
-                    background: e && !isSel ? tintFor(e.level) : undefined,
-                  }}
-                  onClick={() => row && select(index, row)}
-                >
-                  {e ? (
-                    <>
-                      {settings.showIndex && (
-                        <span className="idx" style={{ width: idxWidth }}>
-                          {e.id + 1}
-                        </span>
-                      )}
-                      <span className={`icon ${e.level}`}>{LEVEL_ICON[e.level]}</span>
-                      {markIds.has(e.id) && <span className="bm">★</span>}
-                      <span className="msg">{hl(e.message.split("\n")[0])}</span>
-                      {row.count !== null && row.count > 1 && (
-                        <span className="badge">×{row.count.toLocaleString()}</span>
-                      )}
-                    </>
-                  ) : (
-                    <span className="msg placeholder">…</span>
-                  )}
-                </div>
-              );
-          })}
-        </div>
-        <div
-          className="vscroll"
-          ref={trackRef}
+        <LogList
+          listRef={listRef}
+          start={vStart}
+          end={vEndEx}
+          scrollRow={scrollRow}
+          rowH={rowH}
+          rowAt={rowAt}
+          selectedIndex={selected?.index ?? null}
+          onSelect={select}
+          showIndex={settings.showIndex}
+          idxWidth={`${Math.max(3, String(stats.total).length)}ch`}
+          isBookmarked={(id) => markIds.has(id)}
+          tintFor={tintFor}
+          hl={hl}
+        />
+        <MarkerScrollbar
+          trackRef={trackRef}
+          canvasRef={canvasRef}
+          thumb={thumb}
           onMouseDown={startTrackDrag}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            setMarkMenu({ x: e.clientX, y: e.clientY });
-          }}
-        >
-          <canvas className="vmarks" ref={canvasRef} />
-          {thumb && <div className="vthumb" style={{ top: thumb.top, height: thumb.height }} />}
-        </div>
-        {markMenu && (
-          <div
-            className="vmenu"
-            style={{ left: markMenu.x, top: markMenu.y }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            {(
-              [
-                ["warning", t("lvlWarning")],
-                ["error", t("lvlError")],
-                ["bookmark", t("bookmarks")],
-              ] as const
-            ).map(([kind, label]) => (
-              <button
-                key={kind}
-                className="vmenu-item"
-                onClick={() => setMarkKinds((k) => ({ ...k, [kind]: !k[kind] }))}
-              >
-                <span className="vmenu-check">{markKinds[kind] ? "✓" : ""}</span>
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
+          menu={markMenu}
+          onMenu={setMarkMenu}
+          kinds={markKinds}
+          onToggleKind={(kind) => setMarkKinds((k) => ({ ...k, [kind]: !k[kind] }))}
+        />
         {settings.showSidebar && (
           <Sidebar
             stats={stats}
@@ -1174,73 +986,20 @@ export default function App() {
         )}
       </div>
 
-      {sel && (
-        <div className="detail" style={{ height: `${settings.detailPct}%` }}>
-          <div className="detail-drag" onMouseDown={startDetailDrag} />
-          <div className="detail-head">
-            <span className={`icon ${sel.entry.level}`}>
-              {LEVEL_ICON[sel.entry.level]} {sel.entry.level} · #{sel.entry.id + 1} ·{" "}
-              {t("lineNo", { n: sel.entry.line_no })}
-              {sel.count !== null && sel.count > 1 && ` · ×${sel.count.toLocaleString()}`}
-            </span>
-            <span className="spacer" />
-            <button
-              className={markIds.has(sel.entry.id) ? "bm" : ""}
-              title={t("bookmarkToggle")}
-              onClick={toggleMark}
-            >
-              {markIds.has(sel.entry.id) ? "★" : "☆"}
-            </button>
-            <button
-              title={t("copyRefTitle")}
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  `${fileName(stats.path)} #${sel.entry.id + 1} [${sel.entry.level}] ${sel.entry.message.split("\n")[0]}`,
-                )
-              }
-            >
-              {t("copyRef")}
-            </button>
-            <button
-              onClick={() =>
-                navigator.clipboard.writeText(
-                  [sel.entry.message, ...sel.entry.frames.map((f) => f.raw)].join("\n"),
-                )
-              }
-            >
-              {t("copy")}
-            </button>
-            <button onClick={() => setSelected(null)}>✕</button>
-          </div>
-          {collapse && occurrences.length > 1 && (
-            <div className="occurrences">
-              {t("occurrences")}
-              {occurrences.slice(0, 50).map((id) => (
-                <button key={id} className="mini" onClick={() => jumpToOccurrence(id)}>
-                  #{id + 1}
-                </button>
-              ))}
-              {occurrences.length > 50 && (
-                <span className="hint">{t("occurrencesTotal", { count: occurrences.length })}</span>
-              )}
-            </div>
-          )}
-          <pre className="detail-msg">{hl(sel.entry.message)}</pre>
-          {sel.entry.frames.length > 0 && (
-            <div className="frames">
-              {sel.entry.frames.map((f, i) => (
-                <div
-                  key={i}
-                  className={`frame ${f.file && f.line !== null ? "linked" : ""}`}
-                  title={f.file && f.line !== null ? t("openInIde") : undefined}
-                  onClick={() => openFrame(f)}
-                >
-                  {hl(f.raw)}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      {selected && (
+        <DetailPanel
+          row={selected.row}
+          heightPct={settings.detailPct}
+          bookmarked={markIds.has(selected.row.entry.id)}
+          occurrences={collapse ? occurrences : []}
+          fileLabel={fileName(stats.path)}
+          onDragStart={startDetailDrag}
+          onToggleBookmark={toggleMark}
+          onJumpOccurrence={jumpToOccurrence}
+          onOpenFrame={openFrame}
+          onClose={() => setSelected(null)}
+          hl={hl}
+        />
       )}
 
       {noticeBar}
@@ -1254,13 +1013,7 @@ export default function App() {
         {stats.banner.renderer && <span> · {stats.banner.renderer}</span>}
       </div>
 
-      {showSettings && (
-        <SettingsModal
-          settings={settings}
-          onChange={setSettings}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
+      {settingsModal}
     </main>
   );
 }

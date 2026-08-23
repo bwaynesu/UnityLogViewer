@@ -5,6 +5,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { isPortable, logAssociation, setLogAssociation } from "./lib/api";
 import { LOCALE_NAMES, t, type Locale } from "./lib/i18n";
 import { clampScale, DEFAULTS, type Settings } from "./lib/settings";
+import "./SettingsModal.css";
 
 const REPO_URL = "https://github.com/bwaynesu/UnityLogViewer";
 const LICENSE_URL = "https://www.gnu.org/licenses/agpl-3.0.html";

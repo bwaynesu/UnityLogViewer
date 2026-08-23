@@ -1,0 +1,145 @@
+.setting .wide {
+  flex: 1;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-family: Consolas, monospace;
+}
+
+/* ---- settings modal ---- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px 16px;
+  /* size as a share of the window (vw/vh), not fixed px; guards keep it usable
+     on very small/large windows. At 1280x800: ~666w x ~592h. */
+  width: 52vw;
+  height: 74vh;
+  min-width: 420px;
+  max-width: 92vw;
+  overflow-y: auto;
+}
+
+/* About section (AGPL "Appropriate Legal Notices") */
+.about {
+  color: var(--fg-dim);
+  font-size: 0.9em;
+  line-height: 1.5;
+  padding: 2px 0;
+}
+
+.about a {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.about a:hover {
+  text-decoration: underline;
+}
+
+/* association status note: a wrapping paragraph, not a flex row */
+.assoc-note {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+  line-height: 1.4;
+  padding: 4px 0;
+  overflow-wrap: anywhere;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.modal h3 {
+  font-size: 0.92em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin: 14px 0 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* first section needs no divider (modal header sits above it) */
+.modal h3:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.setting.sub {
+  padding-left: 22px;
+}
+
+/* native checkboxes don't scale with font-size; size them in em so the box
+   grows with the label text */
+.setting input[type="checkbox"] {
+  width: 1.05em;
+  height: 1.05em;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.setting .hint {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+}
+
+.setting select {
+  background: var(--bg3);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+/* folder rows read as fields: bordered chip + adjacent remove button */
+.setting .folder {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 8px;
+}
+
+.setting input[type="number"] {
+  width: 56px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.setting input[type="color"] {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: none;
+}

@@ -1,0 +1,58 @@
+.list {
+  flex: 1;
+  min-width: 80px; /* an over-wide (stored) sidebar can never crush the list to 0 */
+  /* scrolling is ours (see lib/scroll.ts): rows are placed relative to the scroll
+     row and clipped here, the browser never scrolls this box */
+  overflow: hidden;
+  position: relative;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: var(--list-fs, 12px);
+}
+
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--row-h, 24px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.row:hover {
+  background: var(--bg3);
+}
+
+.row.selected {
+  background: var(--sel);
+}
+
+.row .msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row .placeholder {
+  color: var(--fg-dim);
+}
+
+.row .idx {
+  color: var(--fg-dim);
+  text-align: right;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.row .badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--fg-dim);
+}

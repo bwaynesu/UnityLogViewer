@@ -1,0 +1,97 @@
+/* ---- home page (start screen & empty "New Tab") ---- */
+.home {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  color: var(--fg-dim);
+  overflow-y: auto;
+}
+
+/* margin:auto centers when short AND scrolls from the very top when tall
+   (justify-content:center clips the top half beyond scroll range) */
+.home-inner {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 16px;
+}
+
+.home h1 {
+  color: var(--fg);
+  font-weight: 400;
+}
+
+.author-link {
+  font-size: 0.5em;
+  color: var(--accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.author-link:hover {
+  text-decoration: underline;
+}
+
+.home-settings {
+  position: fixed;
+  right: 14px;
+  bottom: 12px;
+  z-index: 20;
+}
+
+.drop-hint {
+  cursor: pointer;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 18px 40px;
+}
+
+.drop-hint:hover {
+  background: var(--bg2);
+}
+
+.empty-cols {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  max-width: 90vw;
+}
+
+.empty-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 220px;
+  max-width: 40vw;
+}
+
+.empty-col h3 {
+  font-size: 0.92em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.empty-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+  padding: 5px 10px;
+}
+
+.empty-item .hint {
+  color: var(--fg-dim);
+  font-size: 0.85em;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-text {
+  color: var(--err);
+}

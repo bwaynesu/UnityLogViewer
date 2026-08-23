@@ -1,0 +1,132 @@
+.sidebar {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--bg2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative; /* anchors .side-drag */
+}
+
+/* native crash banner — deliberately loud */
+.crash-notice {
+  flex-shrink: 0;
+  margin: 6px;
+  padding: 6px 8px;
+  text-align: left;
+  color: var(--err);
+  border-color: var(--err);
+  background: rgba(244, 135, 113, 0.12);
+}
+
+.crash-notice:hover {
+  background: rgba(244, 135, 113, 0.22);
+}
+
+.side-sec {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex-shrink: 0;
+}
+
+.side-sec.grow {
+  flex: 1; /* error summary fills the remaining sidebar height */
+  flex-shrink: 1;
+}
+
+.side-sec.sep {
+  border-top: 1px solid var(--border);
+}
+
+.side-head.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.side-head.clickable:hover {
+  color: var(--fg);
+}
+
+.side-drag {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+  font-size: var(--ui-fs, 12px);
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  font-weight: 600;
+}
+
+/* per-section horizontal scroll: headers/counts stay put, content extends */
+.sysinfo {
+  padding: 0 8px 6px;
+  overflow-x: auto;
+  /* label column sizes to the longest label — fixed widths overlapped in ru/es */
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1em; /* em: scales with font size like the old label column did */
+  row-gap: 2px;
+}
+
+.sysinfo dt {
+  color: var(--fg-dim);
+}
+
+.sysinfo dd {
+  white-space: nowrap;
+}
+
+.side-counts {
+  display: flex;
+  gap: 12px;
+  padding: 0 8px 6px;
+}
+
+.side-empty {
+  padding: 4px 8px;
+  color: var(--fg-dim);
+}
+
+.top-errors {
+  overflow: auto;
+  min-height: 0;
+  flex: 1;
+}
+
+.top-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  width: max-content;
+  min-width: 100%;
+}
+
+.top-error:hover {
+  background: var(--bg3);
+}
+
+.top-error .msg {
+  white-space: nowrap;
+}
+
+.top-error .badge {
+  flex-shrink: 0;
+  background: var(--bg3);
+  border-radius: 8px;
+  padding: 0 8px;
+  color: var(--fg-dim);
+}

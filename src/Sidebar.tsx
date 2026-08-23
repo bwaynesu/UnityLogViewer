@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import type { Row, Stats } from "./lib/api";
 import type { Bookmark } from "./lib/bookmarks";
 import { t } from "./lib/i18n";
+import "./Sidebar.css";
 
 interface Props {
   stats: Stats;

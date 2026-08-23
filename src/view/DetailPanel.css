@@ -1,0 +1,74 @@
+.occurrences {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg-dim);
+  max-height: 72px;
+  overflow-y: auto;
+  flex-shrink: 0; /* fixed section: never squeezed away by message/frames */
+}
+
+.occurrences .hint {
+  font-size: 0.85em;
+}
+
+/* ---- detail panel ---- */
+.detail {
+  min-height: 120px;
+  position: relative;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.detail-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.detail-msg {
+  padding: 8px;
+  font-family: Consolas, monospace;
+  font-size: var(--list-fs, 12px);
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-y: auto;
+  min-height: 3em; /* message stays readable at any panel height; scrolls inside */
+}
+
+.frames {
+  overflow-y: auto;
+  min-height: 3em;
+  padding: 0 8px 8px;
+  font-family: Consolas, monospace;
+  font-size: var(--list-fs, 12px);
+  color: var(--fg-dim);
+}
+
+.frame.linked {
+  color: #4fc1ff;
+  cursor: pointer;
+}
+
+.frame.linked:hover {
+  text-decoration: underline;
+}
+
+.detail-drag {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 7px;
+  cursor: ns-resize;
+  z-index: 5;
+}

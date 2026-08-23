@@ -1,0 +1,15 @@
+/* transient degradation notice; fonts follow --ui-fs via .viewer */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--notice-bg);
+  border-top: 1px solid var(--border);
+}
+
+.notice .msg {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
