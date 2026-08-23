@@ -2,8 +2,8 @@ mod paths;
 mod query;
 
 use query::{
-    group, next_error as find_error, position_in, position_in_groups, top_error_groups,
-    CompiledFilter, FilterParams,
+    group, marks as build_marks, next_error as find_error, position_in, position_in_groups, MarkMap,
+    top_error_groups, CompiledFilter, FilterParams,
 };
 use serde::Serialize;
 use std::collections::HashMap;
@@ -501,6 +501,28 @@ fn next_error(
     Ok(find_error(&loaded.entries, &f, groups, from, backwards))
 }
 
+/// Scrollbar marker map for the active view (see query::marks).
+#[tauri::command]
+fn marks(
+    file_id: u32,
+    filter: FilterParams,
+    collapse: bool,
+    buckets: usize,
+    ids: Vec<u32>,
+    state: State<'_, AppState>,
+) -> Result<MarkMap, String> {
+    let f = filter.compile()?;
+    let key = filter.key();
+    let mut files = state.0.lock().unwrap();
+    let loaded = files.map.get_mut(&file_id).ok_or("unknown file id")?;
+    let groups = if collapse {
+        Some(ensure_groups(&loaded.entries, &mut loaded.groups, &key, &f))
+    } else {
+        None
+    };
+    Ok(build_marks(&loaded.entries, &f, groups, buckets, &ids))
+}
+
 /// Top repeated errors over the whole file for the summary panel.
 #[tauri::command]
 fn top_errors(file_id: u32, limit: usize, state: State<'_, AppState>) -> Result<Vec<Row>, String> {
@@ -896,6 +918,7 @@ pub fn run() {
             scan_watched,
             get_entries,
             get_groups,
+            marks,
             get_occurrences,
             position_of,
             next_error,

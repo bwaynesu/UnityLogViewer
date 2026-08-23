@@ -136,6 +136,27 @@ export interface TailUpdate {
 export const topErrors = (fileId: number, limit: number) =>
   invoke<Row[]>("top_errors", { fileId, limit });
 
+export interface Marks {
+  /** Warnings / errors per scrollbar bucket — counts, so the map can shade by
+   *  density instead of painting every bucket that holds a single warning. */
+  warn: number[];
+  error: number[];
+  /** View row of the first warning / error in each bucket, -1 when it has none. */
+  firstWarn: number[];
+  firstError: number[];
+  /** View row of each requested id, -1 when filtered out of the view. */
+  at: number[];
+}
+
+/** Marker map painted on the scrollbar track, plus where the given ids sit. */
+export const getMarks = (
+  fileId: number,
+  filter: FilterParams,
+  collapse: boolean,
+  buckets: number,
+  ids: number[],
+) => invoke<Marks>("marks", { fileId, filter, collapse, buckets, ids });
+
 export const validateRoot = (path: string) => invoke<boolean>("validate_root", { path });
 
 export const resolvePath = (fileId: number, file: string, fallbackRoot: string | null) =>

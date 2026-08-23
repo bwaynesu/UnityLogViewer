@@ -160,6 +160,90 @@ pub fn next_error(
     }
 }
 
+/// Scrollbar marker map for the current view, squeezed into `buckets` slots.
+///
+/// Counts, not a single severity per bucket: at scale one bucket covers thousands
+/// of rows, so "does this bucket contain a warning" is true nearly everywhere and
+/// paints the whole track one colour. The frontend shades by density instead.
+/// `first_*` is what a click on the track snaps to, so clicks land on an actual
+/// warning/error rather than at a proportional offset that may be thousands of
+/// rows away from anything. One pass over the view, same cost as a page query.
+#[derive(Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct MarkMap {
+    pub warn: Vec<u32>,
+    pub error: Vec<u32>,
+    /// View row index of the first warning in each bucket, -1 when it has none.
+    pub first_warn: Vec<i64>,
+    pub first_error: Vec<i64>,
+    /// View row index of each requested id (bookmarks), -1 when filtered out.
+    pub at: Vec<i64>,
+}
+
+pub fn marks(
+    entries: &[LogEntry],
+    f: &CompiledFilter,
+    groups: Option<&[(u32, u32)]>,
+    buckets: usize,
+    ids: &[u32],
+) -> MarkMap {
+    let rows: Vec<(u32, Level)> = match groups {
+        Some(gs) => gs.iter().map(|&(id, _)| (id, entries[id as usize].level)).collect(),
+        None => entries.iter().filter(|e| f.matches(e)).map(|e| (e.id, e.level)).collect(),
+    };
+    let buckets = buckets.clamp(1, 4096);
+    let mut m = MarkMap {
+        warn: vec![0; buckets],
+        error: vec![0; buckets],
+        first_warn: vec![-1; buckets],
+        first_error: vec![-1; buckets],
+        at: vec![-1; ids.len()],
+    };
+    if rows.is_empty() {
+        return m;
+    }
+    let bucket_of = |i: usize| (i * buckets / rows.len()).min(buckets - 1);
+    let wanted: std::collections::HashSet<u32> = ids.iter().copied().collect();
+    let mut at_row: std::collections::HashMap<u32, usize> = std::collections::HashMap::new();
+    for (i, &(id, level)) in rows.iter().enumerate() {
+        let b = bucket_of(i);
+        if is_error(level) {
+            m.error[b] += 1;
+            if m.first_error[b] < 0 {
+                m.first_error[b] = i as i64;
+            }
+        } else if level == Level::Warning {
+            m.warn[b] += 1;
+            if m.first_warn[b] < 0 {
+                m.first_warn[b] = i as i64;
+            }
+        }
+        if wanted.contains(&id) {
+            at_row.insert(id, i);
+        }
+    }
+    // in the grouped view a bookmarked occurrence is represented by its group's row
+    let group_row: Option<std::collections::HashMap<u64, usize>> = groups.map(|gs| {
+        gs.iter()
+            .enumerate()
+            .map(|(i, &(gid, _))| (entries[gid as usize].hash, i))
+            .collect()
+    });
+    m.at = ids
+        .iter()
+        .map(|id| match (&group_row, at_row.get(id)) {
+            (_, Some(&row)) => row as i64,
+            (Some(map), None) => entries
+                .get(*id as usize)
+                .and_then(|e| map.get(&e.hash))
+                .map(|&row| row as i64)
+                .unwrap_or(-1),
+            _ => -1,
+        })
+        .collect();
+    m
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -283,5 +367,44 @@ mod tests {
         let g = group(&entries, &f);
         let err_group = next_error(&entries, &f, Some(&g), -1, false).unwrap();
         assert_eq!(entries[g[err_group].0 as usize].message, "bad thing");
+    }
+
+    #[test]
+    fn marks_count_per_bucket_and_locate_bookmarks() {
+        let entries = sample(); // Log, Error, Log, Log
+        let f = params(ALL.to_vec()).compile().unwrap();
+        let m = marks(&entries, &f, None, 4, &[1, 3]);
+        assert_eq!(m.error, vec![0, 1, 0, 0]);
+        assert_eq!(m.warn, vec![0; 4]);
+        assert_eq!(m.first_error, vec![-1, 1, -1, -1]); // row 1 is what a click snaps to
+        assert_eq!(m.at, vec![1, 3]);
+        // filtered-out bookmark reports no position
+        let only_err = params(vec![Level::Error]).compile().unwrap();
+        let m = marks(&entries, &only_err, None, 4, &[0]);
+        assert_eq!(m.error, vec![1, 0, 0, 0]); // sole row = top of view
+        assert_eq!(m.at, vec![-1]);
+    }
+
+    #[test]
+    fn marks_accumulate_when_rows_share_a_bucket() {
+        let entries = sample();
+        let f = params(ALL.to_vec()).compile().unwrap();
+        let m = marks(&entries, &f, None, 1, &[]);
+        assert_eq!((m.error, m.first_error), (vec![1], vec![1]));
+        // empty view counts nothing and locates nothing
+        let none = params(vec![]).compile().unwrap();
+        let m = marks(&entries, &none, None, 3, &[1]);
+        assert_eq!((m.error, m.warn, m.first_error, m.at), (vec![0; 3], vec![0; 3], vec![-1; 3], vec![-1]));
+    }
+
+    #[test]
+    fn marks_in_grouped_view_index_by_group_row() {
+        let entries = parse("same\n\nbad\nUnityEngine.Debug:LogError(Object)\n\nsame\n");
+        let f = params(ALL.to_vec()).compile().unwrap();
+        let g = group(&entries, &f); // ["same" ×2, "bad" ×1]
+        let m = marks(&entries, &f, Some(&g), 2, &[2]);
+        assert_eq!(m.error, vec![0, 1]);
+        assert_eq!(m.first_error, vec![-1, 1]);
+        assert_eq!(m.at, vec![0]); // id 2 is an occurrence of group 0, whose row is 0
     }
 }
