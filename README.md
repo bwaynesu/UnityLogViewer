@@ -4,7 +4,7 @@
 
 A desktop app for reading Unity `Player.log` files. Parses the raw log into structured, searchable entries, so large logs that stall a text editor open quickly and stay responsive.
 
-`Player.log` has no timestamps and no severity prefixes; in a text editor it is a flat wall of lines with stack traces broken across many rows. This tool rebuilds each entry with its stack trace, infers the severity, groups repeated messages, and opens the file and line in an IDE straight from a stack frame.
+`Player.log` itself carries no timestamps and no severity prefixes; opened in a text editor it is a flat wall of lines, with stack traces broken across several rows. This tool rebuilds each entry together with its stack trace, infers the severity, and groups repeated messages; clicking a stack frame opens that file and line in an IDE.
 
 ![Unity Log Viewer](./docs/images/Preview.png)
 
