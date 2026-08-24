@@ -61,6 +61,17 @@ static AT_LOCATION: LazyLock<Regex> =
 /// `in <guid>:0` carries no path and is rejected by the `<` check below.
 static IN_LOCATION: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" in (.+):(\d+)\s*$").unwrap());
 
+/// The engine's own source location, printed on its own line after a message that
+/// came from Unity's C++ side, e.g.
+/// `[C:\build\output\unity\unity\Runtime\Transform\TransformHandle.cpp line -1435578392]`.
+/// Players write a garbage line number there, so only the shape is used.
+static NATIVE_SITE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\[.+ line -?\d+\]$").unwrap());
+
+fn is_native_site(line: &str) -> bool {
+    line.starts_with('[') && line.ends_with(']') && NATIVE_SITE.is_match(line)
+}
+
 /// A line that is only closing brackets/braces/parens, optionally with `,`/`;`
 /// (e.g. `}`, `},`, `};`, `}]`, `})`) — the tail of a multi-line dump.
 fn is_closing_bracket(line: &str) -> bool {
@@ -141,9 +152,39 @@ fn infer_level(message: &str, frames: &[StackFrame]) -> Level {
     if message.starts_with(CRASH_MARKER) {
         return Level::Error; // native crash section start
     }
-    // message-pattern level table (shader warnings etc.) is deferred: add it as a
-    // data-driven (Regex, Level) list once real misclassified cases show up.
+    // Engine-emitted messages never pass through `Debug.LogError`, so nothing above
+    // can level them and they used to land here as plain logs — a debug build's
+    // in-game error window shows them as errors. What marks them is the C++ source
+    // location Unity appends on the message's last line. The `Debug:` frame check
+    // guards players that print a source location for managed calls too (Unity's
+    // `Debug.bindings.h` line), where the marker says nothing about the level.
+    let first = message.lines().next().unwrap_or("");
+    let last = message.lines().next_back().unwrap_or("");
+    if last != first && is_native_site(last) && !frames.iter().any(is_managed_log_frame) {
+        return native_level(first);
+    }
     Level::Log
+}
+
+fn is_managed_log_frame(f: &StackFrame) -> bool {
+    f.raw.contains("DebugLogHandler:") || f.raw.contains("UnityEngine.Debug:")
+}
+
+/// Level of a message Unity's C++ side emitted. Unity publishes no message-to-level
+/// mapping and the log file carries no level field, so this is a hand-kept list of
+/// the errors real logs turned up. Anything unlisted is engine-emitted but unknown:
+/// Warning keeps it visible without claiming it is an error. Add a line here when a
+/// native error shows up as a warning.
+fn native_level(first_line: &str) -> Level {
+    const NATIVE_ERRORS: &[&str] = &[
+        "Cannot set the parent of the GameObject",
+        "Physics.ClosestPoint can only be used with",
+        "Look rotation viewing vector is zero",
+    ];
+    if NATIVE_ERRORS.iter().any(|p| first_line.starts_with(p)) {
+        return Level::Error;
+    }
+    Level::Warning
 }
 
 /// Parse a whole log text into entries. Line-classifying state machine.
@@ -158,6 +199,9 @@ pub fn parse_with_progress(text: &str, mut progress: impl FnMut(usize)) -> Vec<L
     let mut entries: Vec<LogEntry> = Vec::new();
     let mut current: Option<Builder> = None;
     let mut bytes_done: usize = 0;
+    // A blank line ends an entry, but Unity puts one between a native message and the
+    // source location that belongs to it, so the flush waits for the next real line.
+    let mut pending_break = false;
 
     let flush = |b: Option<Builder>, entries: &mut Vec<LogEntry>| {
         if let Some(b) = b {
@@ -175,8 +219,14 @@ pub fn parse_with_progress(text: &str, mut progress: impl FnMut(usize)) -> Vec<L
         }
 
         if line.trim().is_empty() {
-            flush(current.take(), &mut entries);
+            pending_break = true;
             continue;
+        }
+        if pending_break {
+            pending_break = false;
+            if !is_native_site(line) {
+                flush(current.take(), &mut entries);
+            }
         }
 
         // Exception managed frame: `  at Foo.Bar () [0x...] in path:0`
@@ -208,6 +258,15 @@ pub fn parse_with_progress(text: &str, mut progress: impl FnMut(usize)) -> Vec<L
                 });
                 continue;
             }
+        } else if is_native_site(line) {
+            // Keep the engine's source location on the entry it describes instead of
+            // splitting it off as an entry of its own; `infer_level` reads it back.
+            if let Some(b) = current.as_mut() {
+                b.message.push('\n');
+                b.message.push_str(line);
+                continue;
+            }
+            // no entry above it (file or tail starts here): falls through to its own
         } else if is_closing_bracket(line) {
             // Unindented `}` / `]` / `)` (with optional `,;`) closes a multi-line
             // object/JSON dump in the current message; keep it attached instead
@@ -288,6 +347,53 @@ mod tests {
             assert_eq!(f.offset, r.offset + last.offset);
             assert_eq!(f.line_no, r.line_no + last.line_no - 1);
         }
+    }
+
+    #[test]
+    fn native_site_line_joins_the_entry_above_and_levels_it() {
+        let text = "Cannot set the parent of the GameObject 'A' while activating or deactivating the parent GameObject 'B'.\n\
+                    UnityEngine.Transform:SetParent(Transform, Boolean)\n\
+                    \n\
+                    [C:\\build\\output\\unity\\unity\\Runtime\\Transform\\TransformHandle.cpp line -1435578392]\n\
+                    \n\
+                    next entry\n";
+        let e = parse(text);
+        assert_eq!(e.len(), 2);
+        assert_eq!(e[0].level, Level::Error);
+        assert!(e[0].message.ends_with("line -1435578392]"));
+        assert_eq!(e[0].frames.len(), 1);
+        assert_eq!(e[1].message, "next entry");
+    }
+
+    #[test]
+    fn unlisted_native_message_falls_back_to_warning() {
+        let text = "Some engine message nobody has catalogued yet\n\
+                    \n\
+                    [C:\\build\\output\\unity\\unity\\Runtime\\Misc\\Whatever.cpp line -1]\n";
+        let e = parse(text);
+        assert_eq!(e.len(), 1);
+        assert_eq!(e[0].level, Level::Warning);
+    }
+
+    #[test]
+    fn managed_log_with_a_source_location_stays_log() {
+        // Some players print a source location for managed calls too; the caller
+        // frame is the stronger signal and must win over the native fallback.
+        let text = "hello world\n\
+                    UnityEngine.Debug:Log(Object)\n\
+                    \n\
+                    [/build/Runtime/Export/Debug.bindings.h line 43]\n";
+        let e = parse(text);
+        assert_eq!(e.len(), 1);
+        assert_eq!(e[0].level, Level::Log);
+    }
+
+    #[test]
+    fn orphan_native_site_line_is_its_own_entry() {
+        // A tail that starts on the site line has no entry to attach it to.
+        let e = parse("[C:\\build\\Runtime\\Foo.cpp line -1]\nnext entry\n");
+        assert_eq!(e.len(), 2);
+        assert_eq!(e[0].level, Level::Log);
     }
 
     #[test]

@@ -63,6 +63,11 @@ Each of these exists because breaking it caused a regression. New code keeps the
 - **The marker map shares the thumb's coordinate span** (`markBuckets` / `markOffset`),
   never the full track — the minimum thumb height desynchronises the two. Buckets store
   counts, not flags: one bucket can cover thousands of rows.
+- **A blank line does not flush the entry on its own line.** The engine prints its C++
+  source location one blank line below the message it belongs to, so the flush waits for
+  the next real line. That location is also the only cue that a message came from the
+  engine rather than a `Debug.Log` call, which is what levels it — losing it turns every
+  native error back into a plain log.
 - **The front end never holds the whole log.** New list-like UI pages through IPC.
 - **JS never sends `hash` back to Rust** — u64 loses precision in JSON. Key by entry `id`.
 - **Live tail may only replace the last entry and append.** Ids of earlier entries never
